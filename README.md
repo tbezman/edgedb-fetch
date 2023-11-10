@@ -4,6 +4,55 @@
 
 The goal of this demo is to show Relay-esque style data requirements with a composable query language like EdgeDB.
 
+EdgeDB brings a new level of composability to database querying. If you haven't looked into EdgeDB, I recommend reading the [quickstart here](https://www.edgedb.com/docs/intro/quickstart).
+
+Here's a few code snippets of the composability you can achieve w/ RSCs, bubbling up data requirements of your component tree to the root of your page.
+
+Consider the following EdgeDB Schema
+
+```edgeql
+module default {
+    type User {
+        required name: str;
+        required age: int32;
+
+        multi link posts := .<author[is Post];
+        multi link comments := .<author[is Comment];
+    }
+
+    type Post {
+        required title: str;
+        required content: str;
+        required published: bool;
+
+        required property created_at -> datetime {
+            # Set the default value to the current timestamp
+            default := datetime_current();
+        }
+
+        required author: User;
+
+        multi link comments := .<parentPost[is Comment];
+    }
+
+    type Comment {
+        required text: str;
+
+        required property created_at -> datetime {
+            # Set the default value to the current timestamp
+            default := datetime_current();
+        }
+
+        parentPost: Post;
+        parentComment: Comment;
+
+        required author: User;
+
+        multi link replies := .<parentComment[is Comment];
+    }
+}
+```
+
 ```typescript
 // page.tsx
 
