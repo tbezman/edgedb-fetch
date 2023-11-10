@@ -1,0 +1,18 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.flash {
+  animation: flash 1s ease-in-out;
+  background-color: theme("colors.amber.100");
+}
+
+@keyframes flash {
+  0% {
+    opacity: 0.5;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
