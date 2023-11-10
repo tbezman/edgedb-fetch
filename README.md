@@ -2,6 +2,8 @@
 
 ![Demo](./readme/demo.png)
 
+> If you want to run locally, jump to [Running Locally](#running-locally)
+
 The goal of this demo is to show Relay-esque style data requirements with a composable query language like EdgeDB.
 
 EdgeDB brings a new level of composability to database querying. If you haven't looked into EdgeDB, I recommend reading the [quickstart here](https://www.edgedb.com/docs/intro/quickstart).
@@ -167,4 +169,19 @@ export type RefType<
   >;
   __cardinality__: typeof Cardinality.One;
 }>;
+```
+
+## Running Locally
+
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://sh.edgedb.com | sh;
+
+git clone git@github.com:tbezman/edgedb-fetch.git;
+
+cd edgedb-fetch;
+
+bun migrate;
+bun src/seed.ts;
+
+bun dev; # Start the dev server.
 ```
