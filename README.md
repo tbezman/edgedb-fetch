@@ -1,6 +1,6 @@
 ### Composing EdgeDB Queries w/ RSC
 
-![Demo](./demo/readme.png)
+![Demo](./readme/demo.png)
 
 The goal of this demo is to show Relay-esque style data requirements with a composable query language like EdgeDB.
 
