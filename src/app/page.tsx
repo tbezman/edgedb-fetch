@@ -1,24 +1,19 @@
 import { createClient } from "edgedb";
-import e from "../../dbschema/edgeql-js";
-import { PostCard, PostCardPostRef } from "@/app/PostCard";
-import { PlusIcon } from "@heroicons/react/20/solid";
+import { PostCard } from "@/app/PostCard";
 import { NewPostModal } from "./NewPostModal";
+import { edgeql } from "../../dist/manifest";
 
 const client = createClient();
 
 export default async function Home() {
-  const posts = await e
-    .select(e.Post, (post) => ({
-      id: true,
-
-      postCardRef: e.select(post, PostCardPostRef),
-
-      order_by: {
-        expression: post.created_at,
-        direction: e.DESC,
-      },
-    }))
-    .run(client);
+  const { posts } = await edgeql(
+    `query PostQuery {
+      posts: Post {
+        id
+        ...PostCardFragment
+      }
+    }`,
+  ).run(client);
 
   return (
     <div className="py-4 px-4">
@@ -31,7 +26,7 @@ export default async function Home() {
         {posts.map((post) => {
           return (
             <li key={post.id}>
-              <PostCard post={post.postCardRef} />
+              <PostCard postRef={post.PostCardFragmentRef} />
             </li>
           );
         })}

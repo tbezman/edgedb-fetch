@@ -1,41 +1,34 @@
-import { RefSelectorArg, RefType, RefReturnType } from "@/app/types";
-import e from "../../dbschema/edgeql-js";
 import { formatDistanceToNow } from "date-fns";
 import { ReplyButton } from "./ReplyButton";
 import { ReplyCommentCard } from "./ReplyCommentCard";
-import { ReplyCommentCardRef } from "./ReplyCommentCardRef";
-
-export function CommentCardCommentRef(
-  comment: RefSelectorArg<typeof e.Comment>
-) {
-  return {
-    id: true,
-    text: true,
-    created_at: true,
-    parentPost: (post) => ({ id: true }),
-    replies: (comment) => ({
-      id: true,
-
-      replyRef: e.select(comment, ReplyCommentCardRef),
-
-      order_by: {
-        expression: comment.created_at,
-        direction: e.ASC,
-      },
-    }),
-    author: (author) => ({ name: true }),
-  } satisfies RefReturnType<typeof e.Comment>;
-}
+import { edgeql } from "../../dist/manifest";
+import { CommentCardFragmentRef } from "../../dist/CommentCardFragment";
 
 type CommentCardProps = {
+  commentRef: CommentCardFragmentRef;
   highlightedCommentId?: string;
-  comment: RefType<typeof e.Comment, typeof CommentCardCommentRef>;
 };
 
 export function CommentCard({
-  comment,
+  commentRef,
   highlightedCommentId,
 }: CommentCardProps) {
+  const comment = edgeql(`
+    fragment CommentCardFragment on Comment {
+      id
+      text
+      created_at
+
+      replies {
+        ...ReplyCommentCardFragment
+      } filter len(.text) > 50
+
+      author {
+        name
+      }
+    }
+  `).pull(commentRef);
+
   return (
     <div>
       <div className="flex items-baseline justify-between">
@@ -61,7 +54,7 @@ export function CommentCard({
               return (
                 <li key={reply.id}>
                   <ReplyCommentCard
-                    comment={reply.replyRef}
+                    commentRef={reply.ReplyCommentCardFragmentRef}
                     highlightedCommentId={highlightedCommentId}
                   />
                 </li>

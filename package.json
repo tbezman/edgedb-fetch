@@ -6,17 +6,23 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "compile": "bun antlr && bun ./compiler/compiler.ts",
     "lint": "next lint",
+    "antlr": "rm -rf antlr/* && java -jar /Users/terence/Downloads/antlr-4.13.1-complete.jar -Dlanguage=TypeScript -o antlr -visitor ./MyGrammar.g4",
     "generate": "bunx @edgedb/generate edgeql-js",
     "migrate": "edgedb database wipe --non-interactive && edgedb migrate && edgedb migration create --non-interactive --allow-unsafe && edgedb migrate; bun generate"
   },
   "dependencies": {
     "@faker-js/faker": "^8.2.0",
     "@heroicons/react": "^2.0.18",
+    "@total-typescript/ts-reset": "^0.5.1",
+    "antlr4": "^4.13.1-patch-1",
     "date-fns": "^2.30.0",
+    "fast-glob": "^3.3.2",
     "next": "14.0.0",
     "react": "^18",
-    "react-dom": "^18"
+    "react-dom": "^18",
+    "ts-morph": "^20.0.0"
   },
   "devDependencies": {
     "@edgedb/generate": "^0.3.4",

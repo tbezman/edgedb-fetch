@@ -3,21 +3,33 @@ import e from "../../dbschema/edgeql-js";
 import { RefType } from "./types";
 import { ReplyCommentCardRef } from "./ReplyCommentCardRef";
 import { useEffect, useRef } from "react";
+import { edgeql } from "../../dist/manifest";
+import { ReplyCommentCardFragmentRef } from "../../dist/ReplyCommentCardFragment";
 
 type ReplyCommentCardProps = {
   highlightedCommentId?: string;
-  comment: RefType<typeof e.Comment, typeof ReplyCommentCardRef>;
+  commentRef: ReplyCommentCardFragmentRef;
 };
 
 export function ReplyCommentCard({
-  comment,
+  commentRef,
   highlightedCommentId,
 }: ReplyCommentCardProps) {
-  const commentRef = useRef<HTMLDivElement | null>(null);
+  const comment = edgeql(`fragment ReplyCommentCardFragment on Comment {
+    id
+    text
+    author {
+      name
+    }
+  }`).pull(commentRef);
+
+  console.log(comment);
+
+  const elementRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (highlightedCommentId === comment.id) {
-      commentRef.current?.scrollIntoView({
+      elementRef.current?.scrollIntoView({
         block: "center",
         behavior: "smooth",
       });
@@ -26,7 +38,7 @@ export function ReplyCommentCard({
 
   return (
     <div
-      ref={commentRef}
+      ref={elementRef}
       className={`text-[15px] flex items-center gap-x-2 rounded ${
         highlightedCommentId === comment.id ? "flash p-2" : ""
       }`}

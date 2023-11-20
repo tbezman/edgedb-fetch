@@ -1,8 +1,8 @@
-import { CommentCard, CommentCardCommentRef } from "@/app/CommentCard";
+import { CommentCard } from "@/app/CommentCard";
 import { createClient } from "../../../../dbschema/edgeql-js";
-import e from "../../../../dbschema/edgeql-js";
 import { BackwardIcon } from "@heroicons/react/20/solid";
 import Link from "next/link";
+import { edgeql } from "../../../../dist/manifest";
 
 type PageProps = {
   searchParams: { highlightedComment?: string };
@@ -12,26 +12,19 @@ type PageProps = {
 const client = createClient();
 
 export default async function PostPage({ params, searchParams }: PageProps) {
-  const post = await e
-    .assert_single(
-      e.select(e.Post, (post) => ({
-        id: true,
-        title: true,
-        content: true,
-        comments: (comment) => ({
-          id: true,
-
-          commentCardRef: e.select(comment, CommentCardCommentRef),
-
-          order_by: {
-            expression: comment.created_at,
-            direction: e.DESC,
-          },
-        }),
-        filter: e.op(post.id, "=", e.uuid(params.id)),
-      }))
-    )
-    .run(client);
+  const { post } = await edgeql(`
+    query PostPageQuery {
+        post: single Post {
+            id
+            title
+            content
+            comments {
+                id
+                ...CommentCardFragment
+            }
+        } filter .id = <uuid>$id
+    }
+  `).run(client, { id: params.id });
 
   return (
     <>
@@ -57,7 +50,7 @@ export default async function PostPage({ params, searchParams }: PageProps) {
               return (
                 <li key={comment.id}>
                   <CommentCard
-                    comment={comment.commentCardRef}
+                    commentRef={comment.CommentCardFragmentRef}
                     highlightedCommentId={searchParams.highlightedComment}
                   />
                 </li>

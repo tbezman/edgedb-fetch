@@ -1,0 +1,11 @@
+fragment CommentCardFragment on Comment {
+      id
+      text
+      created_at
+      replies {
+        ...ReplyCommentCardFragment
+      }
+      author {
+        name
+      }
+    }
