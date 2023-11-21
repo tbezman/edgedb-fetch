@@ -13,7 +13,7 @@ const client = createClient();
 
 export default async function PostPage({ params, searchParams }: PageProps) {
   const { post } = await edgeql(`
-    query PostPageQuery {
+    query PostPageQuery(id: string) {
         post: single Post {
             id
             title

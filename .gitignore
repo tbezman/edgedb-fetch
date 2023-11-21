@@ -37,6 +37,5 @@ next-env.d.ts
 
 dbschema/edgeql-js
 
-
 dist/
 antlr/

@@ -6,14 +6,14 @@ import { edgeql } from "../../dist/manifest";
 const client = createClient();
 
 export default async function Home() {
-  const { posts } = await edgeql(
-    `query PostQuery {
-      posts: Post {
-        id
-        ...PostCardFragment
-      }
-    }`,
-  ).run(client);
+  const { posts } = await edgeql(`
+    query PostQuery {
+        posts: Post {
+          id
+          ...PostCardFragment
+        }
+    }
+`).run(client, {});
 
   return (
     <div className="py-4 px-4">

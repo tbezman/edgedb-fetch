@@ -3,11 +3,15 @@ grammar MyGrammar;
 //https://spec.graphql.org/October2021/#sec-Document
 document: definition+ EOF;
 
-definition: selectStatement | fragmentDefinition;
+definition: query | fragmentDefinition;
 
 fragmentDefinition: 'fragment' name 'on' entity '{' selectionSet '}';
 
-selectStatement: 'query' name '{' querySelectionSet '}';
+query: 'query' name variablesDefinition? '{' querySelectionSet '}';
+
+variablesDefinition: '(' variableDefinition (',' variableDefinition)* ')';
+
+variableDefinition: name ':' type;
 
 querySelectionSet: querySelection*;
 
@@ -21,7 +25,7 @@ operatorParts: (operator simpleExpression)*;
 
 leftExpression: simpleExpression;
 
-simpleExpression: function_call | variable | path | constant_expression;
+simpleExpression: cast? (function_call | variable | path | constant_expression);
 
 constant_expression: STRING | NUMBER | 'true' | 'false' | 'null';
 
@@ -52,7 +56,7 @@ functionArguments: functionArgument (',' functionArgument)*;
 
 functionArgument: name;
 
-variable: cast? '$' name;
+variable: '$' name;
 
 cast: '<'type'>';
 

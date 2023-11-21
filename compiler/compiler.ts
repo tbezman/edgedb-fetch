@@ -1,5 +1,11 @@
 import { globStream } from "fast-glob";
-import { mkdirSync, readFileSync, rmdirSync } from "fs";
+import {
+  mkdirSync,
+  readFile,
+  readFileSync,
+  rmdirSync,
+  writeFileSync,
+} from "fs";
 import {
   CodeBlockWriter,
   FunctionDeclarationOverloadStructure,
@@ -16,16 +22,14 @@ import MyGrammarLexer from "../antlr/MyGrammarLexer";
 import MyGrammarParser, {
   ExpressionContext,
   FragmentDefinitionContext,
+  QueryContext,
   QuerySelectionContext,
   SelectionSetContext,
-  SelectStatementContext,
+  SimpleExpressionContext,
+  TypeContext,
+  VariableDefinitionContext,
+  VariablesDefinitionContext,
 } from "../antlr/MyGrammarParser";
-import {
-  $scopify,
-  ObjectTypeExpression,
-} from "../dbschema/edgeql-js/typesystem";
-import { $linkPropify } from "../dbschema/edgeql-js/path";
-import { Cardinality } from "../dbschema/edgeql-js";
 
 let counter = 0;
 function getIncrementalArg() {
@@ -45,10 +49,7 @@ const fragmentDefinitions = new Map<
   string,
   WithFileContext<FragmentDefinitionContext>
 >();
-const selectStatements = new Map<
-  string,
-  WithFileContext<SelectStatementContext>
->();
+const queries = new Map<string, WithFileContext<QueryContext>>();
 
 const stream = globStream("**/*.ts*", { cwd: "src" });
 
@@ -62,7 +63,7 @@ for await (const entry of stream) {
 function writeSelectionSetForQuerySelection(
   writer: CodeBlockWriter,
   selectionSetContext: SelectionSetContext,
-  arg: string
+  arg: string,
 ) {
   for (const selection of selectionSetContext.fieldSelection_list()) {
     if (selection.linkedField()) {
@@ -74,12 +75,16 @@ function writeSelectionSetForQuerySelection(
       writeSelectionSetForQuerySelection(
         writer,
         linkedField.selectionSet(),
-        arg
+        arg,
       );
 
       if (linkedField.potentialFilter()) {
         writer.write("filter: ");
-        writeExpression(writer, linkedField.potentialFilter().expression());
+        writeExpression(
+          writer,
+          linkedField.potentialFilter().expression(),
+          arg,
+        );
         writer.write(",");
       }
 
@@ -101,17 +106,69 @@ function writeSelectionSetForQuerySelection(
       writeSelectionSetForQuerySelection(
         writer,
         fragment.context.selectionSet(),
-        nextArg
+        nextArg,
       );
       writer.write("})),");
     }
   }
 }
 
+function writeSimpleExpression(
+  writer: CodeBlockWriter,
+  simpleExpression: SimpleExpressionContext,
+  argName: string,
+) {
+  console.log("--------------------------");
+  console.log("Simple Expression", simpleExpression.getText());
+  console.log("--------------------------");
+
+  if (simpleExpression.cast()) {
+    const cast = simpleExpression.cast();
+    writer.write(`e.${cast.type_().getText()}(`);
+  }
+
+  if (simpleExpression.function_call()) {
+    const functionCall = simpleExpression.function_call();
+    const functionName = functionCall.name().getText();
+
+    writer.write(`e.${functionName}(`);
+
+    for (const arg of functionCall
+      .function_arguments()
+      .function_argument_list()) {
+      const expression = arg.expression();
+
+      writeExpression(writer, expression, argName);
+    }
+
+    writer.write(")");
+  } else if (simpleExpression.path()) {
+    const path = simpleExpression.path();
+
+    writer.write(`${argName}${path.getText()}`);
+  } else if (simpleExpression.constant_expression()) {
+    const constantExpression = simpleExpression.constant_expression();
+
+    writer.write(constantExpression.getText());
+  } else if (simpleExpression.variable()) {
+    const variable = simpleExpression.variable();
+    writer.write(`variables.${variable.name().getText()}`);
+  }
+
+  if (simpleExpression.cast()) {
+    writer.write(`)`);
+  }
+}
+
 function writeExpression(
   writer: CodeBlockWriter,
-  expression: ExpressionContext
+  expression: ExpressionContext,
+  argName: string,
 ) {
+  console.log("--------------------------");
+  console.log("Expresion", expression.getText());
+  console.log("--------------------------");
+
   const operatorParts = expression.operatorParts();
 
   const operators = operatorParts.operator_list();
@@ -120,7 +177,7 @@ function writeExpression(
   if (operatorExpressions.length !== operators.length) {
     console.log(
       operatorExpressions.map((it) => it.getText()),
-      operators.map((it) => it.getText())
+      operators.map((it) => it.getText()),
     );
 
     throw new Error("Mismatched operators and expressions");
@@ -131,22 +188,21 @@ function writeExpression(
   }
 
   const leftExpression = expression.leftExpression().simpleExpression();
+  writeSimpleExpression(writer, leftExpression, argName);
 
-  if (leftExpression.function_call()) {
-    const functionCall = leftExpression.function_call();
-    const functionName = functionCall.name().getText();
+  writer.write(",");
 
-    writer.write(`e.${functionName}(`);
+  for (const index in operators) {
+    const operator = operators[index];
+    const operatorExpression = operatorExpressions[index];
 
-    for (const arg of functionCall
-      .function_arguments()
-      .function_argument_list()) {
-      const expression = arg.expression();
+    writer.write(`'${operator.getText()}', `);
 
-      writeExpression(writer, expression);
-    }
+    writeSimpleExpression(writer, operatorExpression, argName);
 
-    writer.write(")");
+    console.log(operatorExpression.getText());
+
+    // writer.write(")");
   }
 
   if (operators.length > 0) {
@@ -156,7 +212,7 @@ function writeExpression(
 
 function writeSelectFromQuerySelection(
   writer: CodeBlockWriter,
-  selection: QuerySelectionContext
+  selection: QuerySelectionContext,
 ) {
   const arg = getIncrementalArg();
 
@@ -174,7 +230,7 @@ function writeSelectFromQuerySelection(
 
     writer.write("filter: ");
 
-    writeExpression(writer, expression);
+    writeExpression(writer, expression, arg);
 
     writer.write(",");
   }
@@ -190,7 +246,7 @@ for (const fragment of fragmentDefinitions.values()) {
   const filePath = join(
     process.cwd(),
     "dist",
-    fragment.context.name().getText() + ".ts"
+    fragment.context.name().getText() + ".ts",
   );
 
   const sourceFile = project.createSourceFile(filePath);
@@ -213,13 +269,13 @@ for (const fragment of fragmentDefinitions.values()) {
       writer.write(
         `return e.assert_single(e.select(e.${fragment.context
           .entity()
-          .getText()}, (${arg}) => ({`
+          .getText()}, (${arg}) => ({`,
       );
 
       writeSelectionSetForQuerySelection(
         writer,
         fragment.context.selectionSet(),
-        arg
+        arg,
       );
 
       writer.write("})))");
@@ -236,13 +292,36 @@ for (const fragment of fragmentDefinitions.values()) {
 
   sourceFile.formatText();
   sourceFile.saveSync();
+
+  await prettifyPath(sourceFile.getFilePath());
 }
 
-for (const select of selectStatements.values()) {
+function writeVariablesDefinition(
+  writer: CodeBlockWriter,
+  variablesDefinition: VariablesDefinitionContext,
+) {
+  writer.write("{");
+
+  for (const variable of variablesDefinition.variableDefinition_list()) {
+    writer.write(`${variable.name().getText()}: `);
+    writeType(writer, variable.type_());
+    writer.write(",");
+  }
+
+  writer.write("}");
+}
+
+function writeType(writer: CodeBlockWriter, type: TypeContext) {
+  if (type.getText() === "string") {
+    writer.write("string");
+  }
+}
+
+for (const query of queries.values()) {
   const filePath = join(
     process.cwd(),
     "dist",
-    select.context.name().getText() + ".ts"
+    query.context.name().getText() + ".ts",
   );
 
   const sourceFile = project.createSourceFile(filePath);
@@ -256,13 +335,29 @@ for (const select of selectStatements.values()) {
     defaultImport: "e",
   });
 
+  let variablesType = "{}";
+  if (query.context.variablesDefinition()) {
+    const variablesDefinition = query.context.variablesDefinition();
+
+    variablesType = `${query.context.name().getText()}Variables`;
+
+    sourceFile.addTypeAlias({
+      name: variablesType,
+      type: (writer) => writeVariablesDefinition(writer, variablesDefinition),
+    });
+  }
+
   sourceFile.addFunction({
-    name: select.context.name().getText(),
+    name: query.context.name().getText(),
     statements: (writer) => {
-      for (const selection of select.context
+      for (const selection of query.context
         .querySelectionSet()
         .querySelection_list()) {
-        writer.write(`const ${selection.name().getText()} = (variables) => {`);
+        writer.write(
+          `const ${selection
+            .name()
+            .getText()} = (variables: ${variablesType}) => {`,
+        );
         writer.write("return ");
         writeSelectFromQuerySelection(writer, selection);
         writer.write("}");
@@ -271,16 +366,16 @@ for (const select of selectStatements.values()) {
       writer.blankLine();
 
       writer.write(`return {
-          async run(client: Executor, variables) {
-            const promises = await Promise.all([${select.context
+          async run(client: Executor, variables: ${variablesType}) {
+            const promises = await Promise.all([${query.context
               .querySelectionSet()
               .querySelection_list()
               .map((selection) =>
-                selection.name().getText()
+                selection.name().getText(),
               )}(variables).run(client)]);
           
             return {
-              ${select.context
+              ${query.context
                 .querySelectionSet()
                 .querySelection_list()
                 .map((selection, index) => {
@@ -295,11 +390,13 @@ for (const select of selectStatements.values()) {
 
   sourceFile.formatText();
   sourceFile.saveSync();
+
+  await prettifyPath(sourceFile.getFilePath());
 }
 
 const manifest = project.createSourceFile("dist/manifest.ts");
 
-for (const query of selectStatements.values()) {
+for (const query of queries.values()) {
   manifest.addImportDeclaration({
     namedImports: [query.context.name().getText()],
     moduleSpecifier: `./${query.context.name().getText()}`,
@@ -307,7 +404,7 @@ for (const query of selectStatements.values()) {
 }
 
 const overloads: OptionalKind<FunctionDeclarationOverloadStructure>[] = [];
-for (const query of selectStatements.values()) {
+for (const query of queries.values()) {
   const originalText = query.source;
 
   overloads.push({
@@ -337,17 +434,10 @@ manifest.addVariableStatement({
   declarations: [
     {
       name: "map",
-      initializer: `new Map<string, any>([${[...selectStatements.values()].map(
+      initializer: `new Map<string, any>([${[...queries.values()].map(
         (select) => {
-          const originalText = select.source.substring(
-            select.context.start.start,
-            (select.context.stop?.stop ?? 0) + 1
-          );
-
-          return `["${originalText.split("\n").join("\\n")}", ${select.context
-            .name()
-            .getText()}]`;
-        }
+          return `[\`${select.source}\`, ${select.context.name().getText()}]`;
+        },
       )}])
   `,
     },
@@ -371,10 +461,11 @@ manifest.addFunction({
 manifest.formatText({});
 manifest.saveSync();
 
+await prettifyPath(manifest.getFilePath());
+
 function handleFile(path: string) {
   const content = readFileSync(path, "utf8");
   const edgeqlBlocks = findEdgeqlBlocks(content);
-  console.log(edgeqlBlocks);
 
   for (const block of edgeqlBlocks) {
     const input = block;
@@ -392,10 +483,10 @@ function handleFile(path: string) {
         context: fragmentDefinition,
         source: block,
       });
-    } else if (definition.selectStatement()) {
-      const selectStatement = definition.selectStatement();
-      const name = selectStatement.name().getText();
-      selectStatements.set(name, { context: selectStatement, source: block });
+    } else if (definition.query()) {
+      const query = definition.query();
+      const name = query.name().getText();
+      queries.set(name, { context: query, source: block });
     }
   }
 }
@@ -408,4 +499,12 @@ function findEdgeqlBlocks(content: string): string[] {
   }
 
   return [];
+}
+
+async function prettifyPath(path: string) {
+  const args = [`bun`, `prettier`, "--write", path, "--ignore-path"];
+
+  const result = Bun.spawnSync(args);
+
+  console.log(result.stdout.toString());
 }

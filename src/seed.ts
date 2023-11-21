@@ -31,7 +31,7 @@ async function seed() {
           author: e.assert_single(
             e.select(e.User, (user) => ({
               filter: e.op(user.id, "=", e.uuid(newUser.id)),
-            }))
+            })),
           ),
         })
         .run(client);
@@ -46,14 +46,14 @@ async function seed() {
             parentPost: e.assert_single(
               e.select(e.Post, (post) => ({
                 filter: e.op(post.id, "=", e.uuid(newPost.id)),
-              }))
+              })),
             ),
 
             author: e.assert_single(
               e.select(e.User, (user) => ({
                 order_by: e.select(e.random()),
                 limit: 1,
-              }))
+              })),
             ),
           })
           .run(client);
@@ -70,13 +70,13 @@ async function seed() {
                 e.select(e.User, (user) => ({
                   order_by: e.select(e.random()),
                   limit: 1,
-                }))
+                })),
               ),
 
               parentComment: e.assert_single(
                 e.select(e.Comment, (comment) => ({
                   filter: e.op(comment.id, "=", e.uuid(newComment.id)),
-                }))
+                })),
               ),
             })
             .run(client);

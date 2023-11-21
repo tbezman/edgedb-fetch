@@ -16,7 +16,7 @@ export async function submitReply(formdata: FormData) {
     ? e.assert_single(
         e.select(e.Comment, (comment) => ({
           filter: e.op(comment.id, "=", e.uuid(commentId)),
-        }))
+        })),
       )
     : undefined;
 
@@ -24,7 +24,7 @@ export async function submitReply(formdata: FormData) {
     e.select(e.User, (user) => ({
       order_by: e.select(e.random()),
       limit: 1,
-    }))
+    })),
   );
 
   return await e
