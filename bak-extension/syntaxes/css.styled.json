@@ -1,0 +1,122 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Minimal CSS (Styled Components)",
+  "patterns": [
+    {
+      "begin": "\\b(query)\\s+([_A-Za-z][_0-9A-Za-z]*)(\\(.*\\))?\\s+(\\{)",
+      "beginCaptures": {
+        "1": {
+          "name": "storage.type"
+        },
+        "2": {
+          "name": "variable.other"
+        },
+        "5": {
+          "name": "meta.brace.curly"
+        }
+      },
+      "end": "(\\})",
+      "endCaptures": {
+        "0": {
+          "name": "meta.brace.curly"
+        }
+      },
+      "patterns": [
+        {
+          "include": "#query-selection-set"
+        }
+      ]
+    },
+    {
+      "begin": "\\b(fragment)\\s+([_A-Za-z][_0-9A-Za-z]*)\\s+(on)\\s+([_A-Za-z][_0-9A-Za-z]*)\\s*(\\{)",
+      "beginCaptures": {
+        "1": {
+          "name": "storage.type"
+        },
+        "2": {
+          "name": "variable.other"
+        },
+        "3": {
+          "name": "keyword.operator"
+        },
+        "4": {
+          "name": "support.constant"
+        },
+        "5": {
+          "name": "meta.brace.curly"
+        }
+      },
+      "end": "(\\})",
+      "endCaptures": {
+        "0": {
+          "name": "meta.brace.curly"
+        }
+      },
+      "patterns": [
+        {
+          "include": "#selection-set"
+        }
+      ]
+    }
+  ],
+  "repository": {
+    "query-selection-set": {
+      "patterns": [
+        {
+          "begin": "(\\w+):\\s+(single)\\s+(\\w+)\\s+\\{",
+          "beginCaptures": {
+            "1": {
+              "name": "variable.other"
+            },
+            "2": {
+              "name": "keyword.operator"
+            },
+            "3": {
+              "name": "support.constant"
+            }
+          },
+          "patterns": [{ "include": "#selection-set" }],
+          "end": "(\\})\\s+(filter)\\s+(\\.(\\w+)\\s+(\\=)\\s+<(\\w+)>(\\$\\w+))",
+          "endCaptures": {
+            "2": {
+              "name": "storage.type"
+            },
+            "5": {
+              "name": "keyword.operator"
+            },
+            "6": {
+              "name": "keyword.control"
+            },
+            "7": {
+              "name": "variable"
+            }
+          }
+        }
+      ]
+    },
+    "selection-set": {
+      "patterns": [
+        {
+          "match": "\\.\\.\\.\\w+",
+          "name": "variable.other"
+        },
+        {
+          "begin": "(\\w+)\\s*\\{",
+          "captures": {
+            "1": {
+              "name": "meta.selections"
+            }
+          },
+          "patterns": [{ "include": "#selection-set" }],
+          "end": "(\\})",
+          "endCaptures": {
+            "1": {
+              "name": "meta.brace.curly"
+            }
+          }
+        }
+      ]
+    }
+  },
+  "scopeName": "source.css.styled"
+}

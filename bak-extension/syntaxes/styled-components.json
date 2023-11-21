@@ -1,0 +1,17 @@
+{
+  "fileTypes": ["js", "jsx", "ts", "tsx", "vue", "svelte"],
+  "injectionSelector": "L:source -comment -string",
+  "patterns": [
+    {
+      "contentName": "source.css.scss",
+      "begin": "edgeql\\(`",
+      "end": "`",
+      "patterns": [
+        {
+          "include": "source.css.styled"
+        }
+      ]
+    }
+  ],
+  "scopeName": "styled"
+}
