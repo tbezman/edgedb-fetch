@@ -39,3 +39,4 @@ dbschema/edgeql-js
 
 dist/
 antlr/
+.antlr/
