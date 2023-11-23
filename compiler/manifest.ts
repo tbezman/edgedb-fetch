@@ -71,8 +71,6 @@ export async function writeManifestFile(program: Program) {
   `,
   });
 
-  manifest.formatText({});
-  manifest.saveSync();
-
+  await manifest.save();
   await prettifyPath(manifest.getFilePath());
 }

@@ -9,6 +9,8 @@ export async function writeFragmentFile(
   program: Program,
   fragment: WithFileContext<FragmentDefinitionContext>,
 ) {
+  console.log(`Writing Fragment: ${fragment.context.name().getText()}`);
+
   const filePath = join(
     process.cwd(),
     "dist",
@@ -57,8 +59,6 @@ export async function writeFragmentFile(
       .getText()}>>`,
   });
 
-  sourceFile.formatText();
-  sourceFile.saveSync();
-
+  await sourceFile.save();
   await prettifyPath(sourceFile.getFilePath());
 }

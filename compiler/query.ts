@@ -9,6 +9,8 @@ export async function writeQueryFile(
   program: Program,
   query: WithFileContext<QueryContext>,
 ) {
+  console.log(`Writing Query: ${query.context.name().getText()}`);
+
   const filePath = join(
     process.cwd(),
     "dist",
@@ -79,8 +81,6 @@ export async function writeQueryFile(
     isExported: true,
   });
 
-  sourceFile.formatText();
-  sourceFile.saveSync();
-
+  await sourceFile.save();
   await prettifyPath(sourceFile.getFilePath());
 }

@@ -35,12 +35,16 @@ await Promise.all(
   }),
 );
 
+const promises: Promise<void>[] = [];
+
 for (const fragment of program.fragments.values()) {
-  await writeFragmentFile(program, fragment);
+  promises.push(writeFragmentFile(program, fragment));
 }
 
 for (const query of program.queries.values()) {
-  await writeQueryFile(program, query);
+  promises.push(writeQueryFile(program, query));
 }
 
-writeManifestFile(program);
+promises.push(writeManifestFile(program));
+
+await Promise.all(promises);
