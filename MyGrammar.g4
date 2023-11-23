@@ -72,7 +72,13 @@ fieldSelection: IDENTIFIER | linkedField | fragmentSpread;
 
 linkedField: IDENTIFIER '{' selectionSet '}' potentialFilter?;
 
-fragmentSpread: '...' IDENTIFIER;
+fragmentSpread: '...' IDENTIFIER maybeDirectives?;
+
+maybeDirectives: directives;
+
+directives: directive+;
+
+directive: '@' name;
 
 // Lexer rules
 IDENTIFIER: [a-zA-Z_] [a-zA-Z_0-9]*;
