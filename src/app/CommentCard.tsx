@@ -20,6 +20,7 @@ export function CommentCard({
       created_at
 
       replies {
+        id
         ...ReplyCommentCardFragment
       } filter len(.text) > 50
 
