@@ -30,3 +30,13 @@ export function PostCard({ postRef }: PostCardProps) {
     </article>
   );
 }
+
+export function FallbackCard() {
+  return (
+    <article className="flex flex-col max-w-2xl mx-auto space-y-1">
+      <h3 className="h-5 font-medium bg-amber-100 animate-pulse rounded" />
+
+      <p className="h-12 flex-grow bg-amber-100 animate-pulse rounded"></p>
+    </article>
+  );
+}

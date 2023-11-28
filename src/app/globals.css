@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+html {
+  scrollbar-gutter: stable;
+}
+
 .flash {
   animation: flash 1s ease-in-out;
   background-color: theme("colors.amber.100");
@@ -15,4 +19,29 @@
   100% {
     opacity: 1;
   }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -468px 0;
+  }
+  100% {
+    background-position: 468px 0;
+  }
+}
+
+.shimmer {
+  animation-duration: 0.5s;
+  animation-fill-mode: forwards;
+  animation-iteration-count: infinite;
+  animation-name: shimmer;
+  animation-timing-function: linear;
+
+  background: #ffecb3; /* Light amber base color */
+  background: linear-gradient(to right, #ffecb3 8%, #ffd54f 10%, #ffecb3 33%);
+
+  background-size: 800px 104px;
+  position: relative;
+  color: transparent;
+  border-radius: 4px;
 }

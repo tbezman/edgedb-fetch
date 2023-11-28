@@ -1,4 +1,4 @@
-import { PostCard } from "@/app/PostCard";
+import { FallbackCard, PostCard } from "@/app/PostCard";
 import { NewPostModal } from "./NewPostModal";
 import { edgeql } from "../../dist/manifest";
 import { Suspense } from "react";
@@ -27,7 +27,7 @@ export default async function Home() {
         {posts.map((post) => {
           return (
             <li key={post.id}>
-              <Suspense fallback={<div>Loading...</div>}>
+              <Suspense fallback={<FallbackCard />}>
                 <PostCard postRef={post.PostCardFragmentRef} />
               </Suspense>
             </li>
