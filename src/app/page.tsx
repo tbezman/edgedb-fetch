@@ -1,19 +1,17 @@
-import { createClient } from "edgedb";
 import { PostCard } from "@/app/PostCard";
 import { NewPostModal } from "./NewPostModal";
 import { edgeql } from "../../dist/manifest";
-
-const client = createClient();
+import { Suspense } from "react";
 
 export default async function Home() {
   const { posts } = await edgeql(`
     query PostQuery {
         posts: Post {
           id
-          ...PostCardFragment
+          ...PostCardFragment @defer
         }
     }
-`).run(client, {});
+`).run({});
 
   return (
     <div className="py-4 px-4">
@@ -26,7 +24,9 @@ export default async function Home() {
         {posts.map((post) => {
           return (
             <li key={post.id}>
-              <PostCard postRef={post.PostCardFragmentRef} />
+              <Suspense fallback={<div>Loading...</div>}>
+                <PostCard postRef={post.PostCardFragmentRef} />
+              </Suspense>
             </li>
           );
         })}

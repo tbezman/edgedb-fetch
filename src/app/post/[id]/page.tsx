@@ -24,7 +24,7 @@ export default async function PostPage({ params, searchParams }: PageProps) {
             }
         } filter .id = <uuid>$id
     }
-  `).run(client, { id: params.id });
+  `).run({ id: params.id });
 
   return (
     <>

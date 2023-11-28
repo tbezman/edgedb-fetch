@@ -9,10 +9,37 @@ import { prettifyPath } from "./prettifyPath";
 export async function writeManifestFile(program: Program) {
   const manifest = program.project.createSourceFile("dist/manifest.ts");
 
+  manifest.addImportDeclaration({
+    moduleSpecifier: "edgedb",
+    namedImports: ["createClient"],
+  });
+
+  manifest.addVariableStatement({
+    declarationKind: VariableDeclarationKind.Const,
+    declarations: [
+      {
+        name: "client",
+        initializer: `createClient()`,
+      },
+    ],
+  });
+
   for (const query of program.queries.values()) {
+    const queryName = query.context.name().getText();
     manifest.addImportDeclaration({
-      namedImports: [query.context.name().getText()],
+      namedImports: [queryName, `${queryName}Variables`],
       moduleSpecifier: `./${query.context.name().getText()}`,
+    });
+  }
+
+  for (const fragment of program.fragments.values()) {
+    manifest.addImportDeclaration({
+      namedImports: [
+        `select${fragment.context.name().getText()}`,
+        `${fragment.context.name().getText()}Ref`,
+        `${fragment.context.name().getText()}ValueType`,
+      ],
+      moduleSpecifier: `./${fragment.context.name().getText()}`,
     });
   }
 
@@ -24,7 +51,13 @@ export async function writeManifestFile(program: Program) {
       parameters: [
         { name: "tag", type: `"${originalText.split("\n").join("\\n")}"` },
       ],
-      returnType: `ReturnType<typeof ${query.context.name().getText()}>`,
+      returnType: `{
+      run: (variables: ${query.context
+        .name()
+        .getText()}Variables) => Promise<ReturnType<ReturnType<typeof ${query.context
+        .name()
+        .getText()}>['run']>>,
+      }`,
     });
   }
 
@@ -37,7 +70,9 @@ export async function writeManifestFile(program: Program) {
       ],
 
       returnType: `{
-      pull: (ref: any) => any
+      pull: (ref: ${fragment.context.name().getText()}Ref) => ${fragment.context
+        .name()
+        .getText()}ValueType, 
     }`,
     });
   }
@@ -47,15 +82,18 @@ export async function writeManifestFile(program: Program) {
     declarations: [
       {
         name: "map",
-        initializer: `new Map<string, any>([${[...program.queries.values()].map(
-          (select) => {
-            return `[\`${select.source}\`, ${select.context.name().getText()}]`;
-          },
-        )}])
-  `,
+        initializer: `new Map<string, any>()`,
       },
     ],
   });
+
+  for (const [key, value] of program.queries.entries()) {
+    manifest.addStatements(`map.set(\`${value.source}\`, ${key});`);
+  }
+
+  for (const [key, value] of program.fragments.entries()) {
+    manifest.addStatements(`map.set(\`${value.source}\`, select${key});`);
+  }
 
   manifest.addFunction({
     overloads,
@@ -65,8 +103,16 @@ export async function writeManifestFile(program: Program) {
     parameters: [{ name: "tag", type: `any` }],
     statements: `
   return {
-    run(client, variables) { return map.get(tag)().run(client, variables) },
-    pull(ref) { return ref }
+    run(variables: any) { return map.get(tag)().run(client, variables) },
+    async pull(ref: any) { 
+      if ('__deferred' in ref) {
+        const selector = map.get(tag);
+
+        return selector(ref.id).run(client);
+      } else {
+        return ref;
+      }
+    }
   }
   `,
   });

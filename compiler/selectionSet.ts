@@ -42,7 +42,13 @@ export function writeSelectionSetForQuerySelection(
       writer.write(`${selection.IDENTIFIER().getText()}: true,`);
     } else if (selection.fragmentSpread()) {
       const spread = selection.fragmentSpread();
-      const fragment = program.fragments.get(spread.IDENTIFIER().getText());
+      const fragmentName = spread.IDENTIFIER().getText();
+      const fragment = program.fragments.get(fragmentName);
+      const isDeferred = spread
+        .maybeDirectives()
+        ?.directives()
+        .directive_list()
+        .some((directive) => directive.name().getText() === "defer");
 
       if (!fragment) {
         throw new Error(`Fragment ${spread.IDENTIFIER().getText()} not found`);
@@ -52,12 +58,19 @@ export function writeSelectionSetForQuerySelection(
 
       const nextArg = getIncrementalArg();
       writer.write(`e.select(${arg}, (${nextArg}) => ({`);
-      writeSelectionSetForQuerySelection(
-        writer,
-        program,
-        fragment.context.selectionSet(),
-        nextArg,
-      );
+
+      if (isDeferred) {
+        writer.write(
+          `id: true, __deferred: e.select(true), fragmentName: e.select('${fragmentName}')`,
+        );
+      } else {
+        writeSelectionSetForQuerySelection(
+          writer,
+          program,
+          fragment.context.selectionSet(),
+          nextArg,
+        );
+      }
       writer.write("})),");
     }
   }

@@ -9,13 +9,10 @@ export async function writeFragmentFile(
   program: Program,
   fragment: WithFileContext<FragmentDefinitionContext>,
 ) {
-  console.log(`Writing Fragment: ${fragment.context.name().getText()}`);
+  const fragmentName = fragment.context.name().getText();
+  console.log(`Writing Fragment: ${fragmentName}`);
 
-  const filePath = join(
-    process.cwd(),
-    "dist",
-    fragment.context.name().getText() + ".ts",
-  );
+  const filePath = join(process.cwd(), "dist", fragmentName + ".ts");
 
   const sourceFile = program.project.createSourceFile(filePath);
 
@@ -30,15 +27,18 @@ export async function writeFragmentFile(
   });
 
   sourceFile.addFunction({
-    name: `select${fragment.context.name().getText()}`,
-    parameters: [{ name: "variables", type: "unknown" }],
+    isExported: true,
+    name: `select${fragmentName}`,
+    parameters: [{ name: "id", type: "string" }],
     statements: (writer) => {
       const arg = getIncrementalArg();
       writer.write(
-        `return e.assert_single(e.select(e.${fragment.context
+        `return e.select(e.${fragment.context
           .entity()
           .getText()}, (${arg}) => ({`,
       );
+
+      writer.write(`filter_single: e.op(${arg}.id, "=", e.uuid(id)),`);
 
       writeSelectionSetForQuerySelection(
         writer,
@@ -47,16 +47,24 @@ export async function writeFragmentFile(
         arg,
       );
 
-      writer.write("})))");
+      writer.write("}))");
     },
   });
 
   sourceFile.addTypeAlias({
     isExported: true,
-    name: `${fragment.context.name().getText()}Ref`,
-    type: `setToTsType<ReturnType<typeof select${fragment.context
+    name: `${fragmentName}ValueType`,
+    type: `NonNullable<setToTsType<ReturnType<typeof select${fragment.context
       .name()
-      .getText()}>>`,
+      .getText()}>>>`,
+  });
+
+  sourceFile.addTypeAlias({
+    isExported: true,
+    name: `${fragmentName}Ref`,
+    type: `{id: string, __deferred: true, fragmentName: '${fragmentName}'} | ${fragment.context
+      .name()
+      .getText()}ValueType`,
   });
 
   await sourceFile.save();
