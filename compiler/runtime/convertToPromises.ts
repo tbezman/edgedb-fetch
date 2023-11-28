@@ -31,7 +31,7 @@ export function convertToPromises(
         .get(item.fragmentName)(item.id)
         .run(client)
         .then(async (result) => {
-          await wait(Math.random() * 1000);
+          await wait(Math.random() * 500);
 
           return result;
         });

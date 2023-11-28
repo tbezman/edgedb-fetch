@@ -4,8 +4,8 @@ import e from "../dbschema/edgeql-js";
 
 const client = createClient();
 
-const USER_COUNT = 2;
-const POSTS_PER_USER = 1;
+const USER_COUNT = 5;
+const POSTS_PER_USER = 10;
 const COMMENTS_PER_POST = 10;
 const PROABILITY_OF_COMMENT_REPLY = 0.8;
 
