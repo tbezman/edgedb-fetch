@@ -62,9 +62,7 @@ export async function writeFragmentFile(
   sourceFile.addTypeAlias({
     isExported: true,
     name: `${fragmentName}Ref`,
-    type: `{id: string, __deferred: true, fragmentName: '${fragmentName}'} | ${fragment.context
-      .name()
-      .getText()}ValueType`,
+    type: `Promise<${fragmentName}ValueType> | {id: string, __deferred: true, fragmentName: '${fragmentName}'} | ${fragmentName}ValueType`,
   });
 
   await sourceFile.save();

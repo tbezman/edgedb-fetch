@@ -2,6 +2,9 @@ import { PostCard } from "@/app/PostCard";
 import { NewPostModal } from "./NewPostModal";
 import { edgeql } from "../../dist/manifest";
 import { Suspense } from "react";
+import { createClient } from "../../dbschema/edgeql-js";
+
+const client = createClient();
 
 export default async function Home() {
   const { posts } = await edgeql(`
@@ -11,7 +14,7 @@ export default async function Home() {
           ...PostCardFragment @defer
         }
     }
-`).run({});
+`).run(client, {});
 
   return (
     <div className="py-4 px-4">

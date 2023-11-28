@@ -3,6 +3,8 @@ import { createClient } from "../../../../dbschema/edgeql-js";
 import { BackwardIcon } from "@heroicons/react/20/solid";
 import Link from "next/link";
 import { edgeql } from "../../../../dist/manifest";
+import { Suspense } from "react";
+import { CommentSectionFragmentRef } from "../../../../dist/CommentSectionFragment";
 
 type PageProps = {
   searchParams: { highlightedComment?: string };
@@ -18,13 +20,11 @@ export default async function PostPage({ params, searchParams }: PageProps) {
             id
             title
             content
-            comments {
-                id
-                ...CommentCardFragment
-            }
+
+            ...CommentSectionFragment @defer
         } filter .id = <uuid>$id
     }
-  `).run({ id: params.id });
+  `).run(client, { id: params.id });
 
   return (
     <>
@@ -46,19 +46,42 @@ export default async function PostPage({ params, searchParams }: PageProps) {
           <h2 className="text-xl font-bold">Comments</h2>
 
           <ul className="space-y-8">
-            {post?.comments.map((comment) => {
-              return (
-                <li key={comment.id}>
-                  <CommentCard
-                    commentRef={comment.CommentCardFragmentRef}
-                    highlightedCommentId={searchParams.highlightedComment}
-                  />
-                </li>
-              );
-            })}
+            <Suspense fallback={<li>Loading...</li>}>
+              <CommentSection
+                searchParams={searchParams}
+                postRef={post.CommentSectionFragmentRef}
+              />
+            </Suspense>
           </ul>
         </div>
       </article>
     </>
   );
+}
+
+type CommentSectionProps = {
+  postRef: CommentSectionFragmentRef;
+  searchParams: { highlightedComment?: string };
+};
+
+function CommentSection({ postRef, searchParams }: CommentSectionProps) {
+  const post = edgeql(`
+    fragment CommentSectionFragment on Post {
+      comments {
+        id
+        ...CommentCardFragment
+      }
+    }
+  `).pull(postRef);
+
+  return post?.comments.map((comment) => {
+    return (
+      <li key={comment.id}>
+        <CommentCard
+          commentRef={comment.CommentCardFragmentRef}
+          highlightedCommentId={searchParams.highlightedComment}
+        />
+      </li>
+    );
+  });
 }

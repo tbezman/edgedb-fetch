@@ -23,8 +23,6 @@ export function ReplyCommentCard({
     }
   }`).pull(commentRef);
 
-  console.log(comment);
-
   const elementRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {

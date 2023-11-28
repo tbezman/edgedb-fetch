@@ -51,6 +51,7 @@ export function writeSelectionSetForQuerySelection(
         .some((directive) => directive.name().getText() === "defer");
 
       if (!fragment) {
+        console.log(program.fragments.entries());
         throw new Error(`Fragment ${spread.IDENTIFIER().getText()} not found`);
       }
 

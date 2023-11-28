@@ -10,18 +10,13 @@ export async function writeManifestFile(program: Program) {
   const manifest = program.project.createSourceFile("dist/manifest.ts");
 
   manifest.addImportDeclaration({
-    moduleSpecifier: "edgedb",
-    namedImports: ["createClient"],
+    namedImports: ["use"],
+    moduleSpecifier: "react",
   });
 
-  manifest.addVariableStatement({
-    declarationKind: VariableDeclarationKind.Const,
-    declarations: [
-      {
-        name: "client",
-        initializer: `createClient()`,
-      },
-    ],
+  manifest.addImportDeclaration({
+    namedImports: ["Executor"],
+    moduleSpecifier: "edgedb/dist/ifaces",
   });
 
   for (const query of program.queries.values()) {
@@ -46,17 +41,14 @@ export async function writeManifestFile(program: Program) {
   const overloads: OptionalKind<FunctionDeclarationOverloadStructure>[] = [];
   for (const query of program.queries.values()) {
     const originalText = query.source;
+    const queryName = query.context.name().getText();
 
     overloads.push({
       parameters: [
         { name: "tag", type: `"${originalText.split("\n").join("\\n")}"` },
       ],
       returnType: `{
-      run: (variables: ${query.context
-        .name()
-        .getText()}Variables) => Promise<ReturnType<ReturnType<typeof ${query.context
-        .name()
-        .getText()}>['run']>>,
+      run: (client: Executor, variables: ${queryName}Variables) => Promise<ReturnType<ReturnType<typeof ${queryName}>['run']>>,
       }`,
     });
   }
@@ -103,12 +95,12 @@ export async function writeManifestFile(program: Program) {
     parameters: [{ name: "tag", type: `any` }],
     statements: `
   return {
-    run(variables: any) { return map.get(tag)().run(client, variables) },
-    async pull(ref: any) { 
-      if ('__deferred' in ref) {
-        const selector = map.get(tag);
-
-        return selector(ref.id).run(client);
+    run(client: any, variables: any) { return map.get(tag)().run(client, variables) },
+    pull(ref: any) { 
+      if('__deferred' in ref) {
+        throw new Error("Did not expect to actually see _deferred, that's just for types");
+      } else if (ref instanceof Promise) {
+        return use(ref);
       } else {
         return ref;
       }

@@ -8,18 +8,14 @@ type PostCardProps = {
   postRef: PostCardFragmentRef;
 };
 
-export async function PostCard({ postRef }: PostCardProps) {
-  const before = Date.now();
-  const post = await edgeql(
+export function PostCard({ postRef }: PostCardProps) {
+  const post = edgeql(
     `fragment PostCardFragment on Post {
       id
       title
       content
     }`,
   ).pull(postRef);
-  const after = Date.now();
-
-  console.log(`PostCard: ${after - before}ms`);
 
   return (
     <article className="flex flex-col max-w-2xl mx-auto">

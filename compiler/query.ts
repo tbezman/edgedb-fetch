@@ -4,6 +4,36 @@ import { Program, WithFileContext } from "./context";
 import { writeVariablesDefinition } from "./variablesDefinition";
 import { writeSelectFromQuerySelection } from "./selectionSet";
 import { prettifyPath } from "./prettifyPath";
+import { SourceFile, VariableDeclarationKind } from "ts-morph";
+
+function addFragmentMapToSourceFile(sourceFile: SourceFile, program: Program) {
+  for (const fragment of program.fragments.values()) {
+    sourceFile.addImportDeclaration({
+      namedImports: [`select${fragment.context.name().getText()}`],
+      moduleSpecifier: `./${fragment.context.name().getText()}`,
+    });
+  }
+
+  sourceFile.addVariableStatement({
+    declarationKind: VariableDeclarationKind.Const,
+    declarations: [
+      {
+        name: "fragmentSelectMap",
+        initializer: `new Map<string, any>()`,
+      },
+    ],
+  });
+
+  for (const fragment of program.fragments.values()) {
+    const fragmentName = fragment.context.name().getText();
+
+    sourceFile.addStatements((writer) => {
+      writer.write(
+        `fragmentSelectMap.set("${fragmentName}", select${fragmentName})`,
+      );
+    });
+  }
+}
 
 export async function writeQueryFile(
   program: Program,
@@ -27,6 +57,13 @@ export async function writeQueryFile(
     moduleSpecifier: "../dbschema/edgeql-js",
     defaultImport: "e",
   });
+
+  sourceFile.addImportDeclaration({
+    moduleSpecifier: "../compiler/runtime/convertToPromises",
+    namedImports: ["convertToPromises"],
+  });
+
+  addFragmentMapToSourceFile(sourceFile, program);
 
   let variablesType = "{}";
   if (query.context.variablesDefinition()) {
@@ -65,7 +102,15 @@ export async function writeQueryFile(
               .querySelection_list()
               .map((selection) =>
                 selection.name().getText(),
-              )}(variables).run(client)]);
+              )}(variables).run(client).then(result => {
+                let outcome = result;
+
+                convertToPromises(result, client, (newValue) => {
+                  outcome = newValue;
+                }, fragmentSelectMap);
+
+                return outcome;
+              })]);
           
             return {
               ${query.context

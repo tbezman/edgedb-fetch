@@ -9,11 +9,11 @@ type CommentCardProps = {
   highlightedCommentId?: string;
 };
 
-export async function CommentCard({
+export function CommentCard({
   commentRef,
   highlightedCommentId,
 }: CommentCardProps) {
-  const comment = await edgeql(`
+  const comment = edgeql(`
     fragment CommentCardFragment on Comment {
       id
       text
