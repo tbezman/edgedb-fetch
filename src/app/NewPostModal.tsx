@@ -19,7 +19,7 @@ export function NewPostModal() {
     <>
       <button
         onClick={() => setIsModalOpen(true)}
-        className="flex items-center gap-x-1 bg-amber-700 text-white rounded px-3 py-1"
+        className="flex items-center gap-x-1 bg-blue-700 text-white rounded px-3 py-1"
       >
         <PlusIcon className="w-4 h-4" />
         <span>New Post</span>
@@ -36,20 +36,20 @@ export function NewPostModal() {
                 type="text"
                 placeholder="Title"
                 defaultValue={faker.lorem.paragraph(1)}
-                className="rounded p-1 border border-amber-300 shadow-sm"
+                className="rounded p-1 border border-blue-300 shadow-sm"
               />
 
               <textarea
                 name="content"
                 placeholder="Content"
-                className="rounded p-1 border border-amber-300 shadow-sm"
+                className="rounded p-1 border border-blue-300 shadow-sm"
                 defaultValue={faker.lorem.paragraph(3)}
                 rows={6}
               />
 
               <button
                 type="submit"
-                className="bg-amber-700 text-white rounded px-3 py-1"
+                className="bg-blue-700 text-white rounded px-3 py-1"
               >
                 Submit
               </button>

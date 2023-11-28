@@ -59,7 +59,7 @@ export function ReplyCommentCard({
       </div>
 
       <div className="flex-col">
-        <a href="#" className="text-amber-700 underline">
+        <a href="#" className="text-blue-700 underline">
           {comment.author.name}
         </a>
         <p>{comment.text}</p>

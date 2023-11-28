@@ -33,7 +33,7 @@ export function CommentCard({
     <div>
       <div className="flex items-baseline justify-between">
         <div className="flex items-baseline space-x-1">
-          <a href="#" className="text-amber-700 underline">
+          <a href="#" className="text-blue-700 underline">
             {comment.author.name}
           </a>
           <span>-</span>

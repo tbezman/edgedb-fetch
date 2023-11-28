@@ -9,19 +9,19 @@ type PostCardProps = {
 };
 
 export function PostCard({ postRef }: PostCardProps) {
-  const post = edgeql(
-    `fragment PostCardFragment on Post {
+  const post = edgeql(`
+    fragment PostCardFragment on Post {
       id
       title
       content
-    }`,
-  ).pull(postRef);
+    }
+  `).pull(postRef);
 
   return (
     <article className="flex flex-col max-w-2xl mx-auto">
       <Link
         href={`/post/${post.id}`}
-        className="text-amber-600 underline visited:text-gray-700"
+        className="text-blue-600 underline visited:text-gray-700"
       >
         <h3 className="font-medium">{post.title}</h3>
       </Link>
@@ -34,9 +34,9 @@ export function PostCard({ postRef }: PostCardProps) {
 export function FallbackCard() {
   return (
     <article className="flex flex-col max-w-2xl mx-auto space-y-1">
-      <h3 className="h-5 font-medium bg-amber-100 animate-pulse rounded" />
+      <h3 className="h-5 font-medium bg-blue-100 animate-pulse rounded" />
 
-      <p className="h-12 flex-grow bg-amber-100 animate-pulse rounded"></p>
+      <p className="h-12 flex-grow bg-blue-100 animate-pulse rounded"></p>
     </article>
   );
 }

@@ -53,7 +53,7 @@ export default async function PostPage({ params, searchParams }: PageProps) {
                 <h2 className="text-xl font-bold">Comments</h2>
                 <svg
                   aria-hidden="true"
-                  className="w-4 h-4 text-amber-200 animate-spin fill-amber-600"
+                  className="w-4 h-4 text-blue-200 animate-spin fill-blue-600"
                   viewBox="0 0 100 101"
                   fill="none"
                   xmlns="http://www.w3.org/2000/svg"

@@ -127,7 +127,7 @@ export function PostCard({ post }: PostCardProps) {
     <article className="flex flex-col max-w-2xl mx-auto">
       <Link
         href={`/post/${post.id}`}
-        className="text-amber-600 underline visited:text-gray-700"
+        className="text-blue-600 underline visited:text-gray-700"
       >
         <h3 className="font-medium">{post.title}</h3>
       </Link>

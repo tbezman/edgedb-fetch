@@ -55,7 +55,7 @@ export function ReplyButton({ commentId }: ReplyButtonProps) {
         replace
         scroll={false}
         href={`?reply_to=${commentId}`}
-        className="text-amber-700 underline text-sm"
+        className="text-blue-700 underline text-sm"
       >
         Reply
       </Link>
@@ -69,7 +69,7 @@ export function ReplyButton({ commentId }: ReplyButtonProps) {
         >
           <textarea
             name="text"
-            className="w-[300px] rounded p-1 border border-amber-300"
+            className="w-[300px] rounded p-1 border border-blue-300"
             rows={6}
             defaultValue={faker.lorem.paragraph(3)}
           />
@@ -87,7 +87,7 @@ function SubmitButton() {
   const status = useFormStatus();
 
   return (
-    <button className="bg-amber-900 text-white w-24 mt-2 self-end rounded">
+    <button className="bg-blue-900 text-white w-24 mt-2 self-end rounded">
       {status.pending ? "..." : "Reply"}
     </button>
   );

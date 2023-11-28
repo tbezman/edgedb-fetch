@@ -8,7 +8,7 @@ html {
 
 .flash {
   animation: flash 1s ease-in-out;
-  background-color: theme("colors.amber.100");
+  background-color: theme("colors.blue.100");
 }
 
 @keyframes flash {
@@ -37,7 +37,7 @@ html {
   animation-name: shimmer;
   animation-timing-function: linear;
 
-  background: #ffecb3; /* Light amber base color */
+  background: #ffecb3; /* Light blue base color */
   background: linear-gradient(to right, #ffecb3 8%, #ffd54f 10%, #ffecb3 33%);
 
   background-size: 800px 104px;
