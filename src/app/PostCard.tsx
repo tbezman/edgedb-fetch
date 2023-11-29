@@ -1,5 +1,3 @@
-import { RefReturnType, RefSelectorArg, RefType } from "@/app/types";
-import e from "../../dbschema/edgeql-js";
 import Link from "next/link";
 import { edgeql } from "../../dist/manifest";
 import { PostCardFragmentRef } from "../../dist/PostCardFragment";
