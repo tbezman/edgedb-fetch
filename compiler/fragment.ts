@@ -4,17 +4,24 @@ import { FragmentDefinitionContext } from "../antlr/MyGrammarParser";
 import { getIncrementalArg } from "./getIncrementalArg";
 import { writeSelectionSetForQuerySelection } from "./selectionSet";
 import { prettifyPath } from "./prettifyPath";
+import chalk from "chalk";
 
 export async function writeFragmentFile(
   program: Program,
   fragment: WithFileContext<FragmentDefinitionContext>,
 ) {
   const fragmentName = fragment.context.name().getText();
-  console.log(`Writing Fragment: ${fragmentName}`);
+  console.log(
+    chalk.yellow("✏️"),
+    chalk.blue("️Fragment"),
+    chalk.white(fragmentName),
+  );
 
   const filePath = join(process.cwd(), "dist", fragmentName + ".ts");
 
-  const sourceFile = program.project.createSourceFile(filePath);
+  const sourceFile = program.project.createSourceFile(filePath, undefined, {
+    overwrite: true,
+  });
 
   sourceFile.addImportDeclaration({
     moduleSpecifier: "../dbschema/edgeql-js",

@@ -1,3 +1,4 @@
+import chalk from "chalk";
 import { glob } from "fast-glob";
 import { mkdirSync, rmdirSync } from "fs";
 import { Project } from "ts-morph";
@@ -9,6 +10,9 @@ import { collectDefinitions } from "./collectDefinitions";
 import { writeFragmentFile } from "./fragment";
 import { writeQueryFile } from "./query";
 import { writeManifestFile } from "./manifest";
+import watch from "glob-watcher";
+
+console.log("");
 
 const program: Program = {
   project: new Project(),
@@ -19,32 +23,52 @@ const program: Program = {
 rmdirSync(join(process.cwd(), "dist"), { recursive: true });
 mkdirSync(join(process.cwd(), "dist"));
 
-const files = await glob("**/*.ts*", { cwd: "src" });
+const files = new Set(await glob("src/**/*.ts*", {}));
 
-await Promise.all(
-  files.map(async (file) => {
-    const definitions = await collectDefinitions(join("src", file));
+let hasCompiled = false;
+async function runCompiler() {
+  if (hasCompiled) {
+    console.log(chalk.magentaBright("Recompiling..."));
+  } else {
+    console.log(chalk.magentaBright("Starting the compiler..."));
+  }
 
-    for (const query of definitions.queries) {
-      program.queries.set(query.context.name().getText(), query);
-    }
+  await Promise.all(
+    [...files].map(async (file) => {
+      const definitions = await collectDefinitions(file);
 
-    for (const fragment of definitions.fragments) {
-      program.fragments.set(fragment.context.name().getText(), fragment);
-    }
-  }),
-);
+      for (const query of definitions.queries) {
+        program.queries.set(query.context.name().getText(), query);
+      }
 
-const promises: Promise<void>[] = [];
+      for (const fragment of definitions.fragments) {
+        program.fragments.set(fragment.context.name().getText(), fragment);
+      }
+    }),
+  );
 
-for (const fragment of program.fragments.values()) {
-  promises.push(writeFragmentFile(program, fragment));
+  const promises: Promise<void>[] = [];
+
+  for (const fragment of program.fragments.values()) {
+    promises.push(writeFragmentFile(program, fragment));
+  }
+
+  for (const query of program.queries.values()) {
+    promises.push(writeQueryFile(program, query));
+  }
+
+  promises.push(writeManifestFile(program));
+
+  await Promise.all(promises);
 }
 
-for (const query of program.queries.values()) {
-  promises.push(writeQueryFile(program, query));
-}
+await runCompiler();
 
-promises.push(writeManifestFile(program));
+const watcher = watch(["src/**/*.ts*"], {});
+watcher.on("change", async (file) => {
+  console.log(chalk.green("File Changed:"), chalk.white(file));
 
-await Promise.all(promises);
+  files.add(file);
+
+  await runCompiler();
+});

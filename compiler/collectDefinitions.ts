@@ -16,8 +16,6 @@ export async function collectDefinitions(path: string): Promise<Definitions> {
   const content = await readFile(path, "utf8");
   const edgeqlBlocks = findEdgeqlBlocks(content);
 
-  console.log(edgeqlBlocks);
-
   const definitions: Definitions = { fragments: [], queries: [] };
 
   for (const block of edgeqlBlocks) {

@@ -7,7 +7,11 @@ import { Program } from "./context";
 import { prettifyPath } from "./prettifyPath";
 
 export async function writeManifestFile(program: Program) {
-  const manifest = program.project.createSourceFile("dist/manifest.ts");
+  const manifest = program.project.createSourceFile(
+    "dist/manifest.ts",
+    undefined,
+    { overwrite: true },
+  );
 
   manifest.addImportDeclaration({
     namedImports: ["use"],

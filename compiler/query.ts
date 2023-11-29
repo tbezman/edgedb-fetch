@@ -5,6 +5,7 @@ import { writeVariablesDefinition } from "./variablesDefinition";
 import { writeSelectFromQuerySelection } from "./selectionSet";
 import { prettifyPath } from "./prettifyPath";
 import { SourceFile, VariableDeclarationKind } from "ts-morph";
+import chalk from "chalk";
 
 function addFragmentMapToSourceFile(sourceFile: SourceFile, program: Program) {
   for (const fragment of program.fragments.values()) {
@@ -39,7 +40,11 @@ export async function writeQueryFile(
   program: Program,
   query: WithFileContext<QueryContext>,
 ) {
-  console.log(`Writing Query: ${query.context.name().getText()}`);
+  console.log(
+    chalk.yellow("✏️"),
+    chalk.blue("Query"),
+    chalk.white(query.context.name().getText()),
+  );
 
   const filePath = join(
     process.cwd(),
@@ -47,7 +52,10 @@ export async function writeQueryFile(
     query.context.name().getText() + ".ts",
   );
 
-  const sourceFile = program.project.createSourceFile(filePath);
+  const sourceFile = program.project.createSourceFile(filePath, undefined, {
+    overwrite: true,
+  });
+
   sourceFile.addImportDeclaration({
     moduleSpecifier: "edgedb/dist/ifaces",
     namedImports: ["Executor"],
