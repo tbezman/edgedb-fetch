@@ -31,6 +31,7 @@ async function runCompiler() {
     console.log(chalk.magentaBright("Recompiling..."));
   } else {
     console.log(chalk.magentaBright("Starting the compiler..."));
+    hasCompiled = true;
   }
 
   await Promise.all(
