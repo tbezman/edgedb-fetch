@@ -59,34 +59,40 @@ module default {
 // page.tsx
 
 export default async function Home() {
-  const posts = await e
-    .select(e.Post, (post) => ({
-      id: true,
 
-      // Look! I can select everything that the PostCard needs.
-      // I also get something similar to fragment masking in GraphQL
-      // by embedding the PostCard selection in a namespaced object.
-      //
-      //                     Definition in next example
-      //                                |
-      //                                |
-      postCardRef: e.select(post, PostCardPostRef),
-
-      order_by: {
-        expression: post.created_at,
-        direction: e.DESC,
-      },
-    }))
-    .run(client);
+  /**
+   * This is a fully type safe query fetching all posts from EdgeDB
+   *
+   * The `...PostCardFragment` bit is a way to tell the query
+   * "Please include all of the selections made by the PostCardFragment"
+   *
+   * You'll see that fragment definition shortly below this code snippet
+   *
+   * The `@defer` tells the compiler, please split this into a separate query
+   * as not to block the initial page load's response time on this fragment's data.
+   */
+  const { posts } = await edgeql(`
+    query PostQuery {
+        posts: Post {
+          id
+          ...PostCardFragment @defer
+        }
+    }
+`).run(client, {});
 
   return (
     <div className="py-4 px-4">
+      <div className="flex items-center justify-between sticky top-4">
+        <h1 className="text-2xl font-bold mb-2">Posts</h1>
+      </div>
+
       <ul className="list-inside space-y-4">
         {posts.map((post) => {
           return (
             <li key={post.id}>
-              // And here I can pass the ref to the child component
-              <PostCard post={post.postCardRef} />
+              <Suspense fallback={<FallbackCard />}>
+                <PostCard postRef={post.PostCardFragmentRef} />
+              </Suspense>
             </li>
           );
         })}
@@ -99,30 +105,28 @@ export default async function Home() {
 ```typescript
 // PostCard.tsx
 
-// This is the equivalent of a Fragment Definition in GraphQL
-// Take an arbitary post type, and select what I need off of it
-export function PostCardPostRef(post: RefSelectorArg<typeof e.Post>) {
-  return {
-    id: true,
-    title: true,
-    content: true,
-    author: e.select(post.author, (author) => ({ name: true })),
-  } satisfies RefReturnType<typeof e.Post>;
-  //               |
-  //               |
-  //  You'll see this type definition in the next example
-}
+import Link from "next/link";
+import { edgeql } from "../../dist/manifest";
+import { PostCardFragmentRef } from "../../dist/PostCardFragment";
 
 type PostCardProps = {
-  // My prop type is derived by the type and the fragment selection
-  //
-  //  You'll see this type in the next example
-  //       |
-  //       |
-  post: RefType<typeof e.Post, typeof PostCardPostRef>;
+  postRef: PostCardFragmentRef;
 };
 
-export function PostCard({ post }: PostCardProps) {
+export function PostCard({ postRef }: PostCardProps) {
+  /**
+   * Here we're defining a fragment. A selection of data from the `Post` type.
+   *
+   * `post` is fully type safe based off the generated `PostCardFragmentRef`
+   */
+  const post = edgeql(`
+    fragment PostCardFragment on Post {
+      id
+      title
+      content
+    }
+  `).pull(postRef);
+
   return (
     <article className="flex flex-col max-w-2xl mx-auto">
       <Link
@@ -137,38 +141,15 @@ export function PostCard({ post }: PostCardProps) {
   );
 }
 
-```
+export function FallbackCard() {
+  return (
+    <article className="flex flex-col max-w-2xl mx-auto space-y-1">
+      <h3 className="h-5 font-medium bg-blue-100 animate-pulse rounded" />
 
-And here are the nasty type definitions to get things to work with the EdgeDB generated TypeScript types.
-
-```typescript
-export type RefSelectorArg<Expr extends ObjectTypeExpression> = $scopify<
-  Expr["__element__"]
-> &
-  $linkPropify<{
-    [k in keyof Expr]: k extends "__cardinality__"
-      ? typeof Cardinality.One
-      : Expr[k];
-  }>;
-
-export type RefReturnType<Expr extends ObjectTypeExpression> =
-  objectTypeToSelectShape<Expr["__element__"]> &
-    SelectModifiers<Expr["__element__"]>;
-
-export type RefType<
-  Expr extends ObjectTypeExpression,
-  Shape extends (
-    ...args: any
-  ) => objectTypeToSelectShape<Expr["__element__"]> &
-    SelectModifiers<Expr["__element__"]>,
-> = setToTsType<{
-  __element__: ObjectType<
-    `${Expr["__element__"]["__name__"]}`, // _shape
-    Expr["__element__"]["__pointers__"],
-    Omit<normaliseShape<Readonly<ReturnType<Shape>>>, SelectModifierNames>
-  >;
-  __cardinality__: typeof Cardinality.One;
-}>;
+      <p className="h-12 flex-grow bg-blue-100 animate-pulse rounded"></p>
+    </article>
+  );
+}
 ```
 
 ## Running Locally
@@ -179,6 +160,8 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.edgedb.com | sh;
 git clone git@github.com:tbezman/edgedb-fetch.git;
 
 cd edgedb-fetch;
+
+edgedb project init;
 
 bun migrate;
 bun src/seed.ts;
