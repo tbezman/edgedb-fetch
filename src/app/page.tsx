@@ -1,9 +1,7 @@
 import { FallbackCard, PostCard } from "@/app/PostCard";
 import { edgeql } from "../../dist/manifest";
 import { Suspense } from "react";
-import { createClient } from "../../dbschema/edgeql-js";
-
-const client = createClient();
+import { client } from "@/client";
 
 export default async function Home() {
   const { posts } = await edgeql(`

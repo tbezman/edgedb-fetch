@@ -1,9 +1,8 @@
 "use server";
 
+import { client } from "@/client";
 import e from "../../dbschema/edgeql-js";
-import { createClient } from "../../dbschema/edgeql-js";
 
-const client = createClient();
 export async function submitReply(formdata: FormData) {
   const text = formdata.get("text")?.toString();
   const commentId = formdata.get("commentId")?.toString();

@@ -1,8 +1,6 @@
 import { faker } from "@faker-js/faker";
-import { createClient } from "../dbschema/edgeql-js";
 import e from "../dbschema/edgeql-js";
-
-const client = createClient();
+import { client } from "./client";
 
 const USER_COUNT = 5;
 const POSTS_PER_USER = 10;

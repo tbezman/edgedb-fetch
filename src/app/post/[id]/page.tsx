@@ -1,18 +1,15 @@
 import { CommentCard } from "@/app/CommentCard";
-import { createClient } from "../../../../dbschema/edgeql-js";
-import { BackwardIcon } from "@heroicons/react/20/solid";
 import Link from "next/link";
 import { edgeql } from "../../../../dist/manifest";
 import { Suspense } from "react";
 import { CommentSectionFragmentRef } from "../../../../dist/CommentSectionFragment";
 import { notFound } from "next/navigation";
+import { client } from "@/client";
 
 type PageProps = {
   searchParams: { highlightedComment?: string };
   params: { id: string };
 };
-
-const client = createClient();
 
 export default async function PostPage({ params, searchParams }: PageProps) {
   const { post } = await edgeql(`
