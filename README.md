@@ -1,6 +1,6 @@
 ### Composing EdgeDB Queries w/ RSC
 
-![Demo](./readme/demo.png)
+![Demo](./readme/post.png)
 
 > If you want to run locally, jump to [Running Locally](#running-locally)
 
