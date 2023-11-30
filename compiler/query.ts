@@ -51,7 +51,6 @@ export async function writeQueryFile(
     "dist",
     query.context.name().getText() + ".ts",
   );
-
   const sourceFile = program.project.createSourceFile(filePath, undefined, {
     overwrite: true,
   });
@@ -73,17 +72,16 @@ export async function writeQueryFile(
 
   addFragmentMapToSourceFile(sourceFile, program);
 
-  let variablesType = "{}";
-  if (query.context.variablesDefinition()) {
-    const variablesDefinition = query.context.variablesDefinition();
+  let variablesType = `${query.context.name().getText()}Variables`;
+  const variablesDefinition = query.context.variablesDefinition();
 
-    variablesType = `${query.context.name().getText()}Variables`;
-
-    sourceFile.addTypeAlias({
-      name: variablesType,
-      type: (writer) => writeVariablesDefinition(writer, variablesDefinition),
-    });
-  }
+  sourceFile.addTypeAlias({
+    isExported: true,
+    name: variablesType,
+    type: variablesDefinition
+      ? (writer) => writeVariablesDefinition(writer, variablesDefinition)
+      : "{}",
+  });
 
   sourceFile.addFunction({
     name: query.context.name().getText(),
@@ -114,6 +112,7 @@ export async function writeQueryFile(
                 let outcome = result;
 
                 convertToPromises(result, client, (newValue) => {
+                  // @ts-expect-error Haven't figured out types yet
                   outcome = newValue;
                 }, fragmentSelectMap);
 

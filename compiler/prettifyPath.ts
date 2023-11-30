@@ -1,7 +1,21 @@
+import { spawn } from "child_process";
+
 export async function prettifyPath(path: string) {
-  const args = [`bun`, `prettier`, "--write", path, "--ignore-path"];
+  const args = ["prettier", "--write", path, "--ignore-path"];
 
-  const proc = Bun.spawn(args);
+  return new Promise<void>((resolve, reject) => {
+    const proc = spawn("bun", args);
 
-  await proc.exited;
+    proc.on("exit", (code) => {
+      if (code === 0) {
+        resolve();
+      } else {
+        reject(new Error(`Prettify process exited with code ${code}`));
+      }
+    });
+
+    proc.on("error", (err) => {
+      reject(err);
+    });
+  });
 }

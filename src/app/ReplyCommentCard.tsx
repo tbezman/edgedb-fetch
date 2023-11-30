@@ -1,7 +1,4 @@
 "use client";
-import e from "../../dbschema/edgeql-js";
-import { RefType } from "./types";
-import { ReplyCommentCardRef } from "./ReplyCommentCardRef";
 import { useEffect, useRef } from "react";
 import { edgeql } from "../../dist/manifest";
 import { ReplyCommentCardFragmentRef } from "../../dist/ReplyCommentCardFragment";
