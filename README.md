@@ -165,5 +165,6 @@ edgedb project init;
 bun migrate;
 bun src/seed.ts;
 
+bun compile; # Run the compiler (--watch to run it in watch mode)
 bun dev; # Start the dev server.
 ```
