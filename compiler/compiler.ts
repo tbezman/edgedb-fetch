@@ -12,8 +12,6 @@ import { writeQueryFile } from "./query";
 import { writeManifestFile } from "./manifest";
 import watch from "glob-watcher";
 
-console.log("");
-
 const program: Program = {
   project: new Project(),
   fragments: new Map(),
@@ -65,11 +63,13 @@ async function runCompiler() {
 
 await runCompiler();
 
-const watcher = watch(["src/**/*.ts*"], {});
-watcher.on("change", async (file) => {
-  console.log(chalk.green("File Changed:"), chalk.white(file));
+if (process.argv.includes("--watch")) {
+  const watcher = watch(["src/**/*.ts*"], {});
+  watcher.on("change", async (file) => {
+    console.log(chalk.green("File Changed:"), chalk.white(file));
 
-  files.add(file);
+    files.add(file);
 
-  await runCompiler();
-});
+    await runCompiler();
+  });
+}
