@@ -2,9 +2,9 @@ import { faker } from "@faker-js/faker";
 import e from "../dbschema/edgeql-js";
 import { client } from "./client";
 
-const USER_COUNT = 5;
-const POSTS_PER_USER = 10;
-const COMMENTS_PER_POST = 10;
+const USER_COUNT = 3;
+const POSTS_PER_USER = 5;
+const COMMENTS_PER_POST = 3;
 const PROABILITY_OF_COMMENT_REPLY = 0.8;
 
 async function seed() {

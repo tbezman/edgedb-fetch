@@ -11,7 +11,7 @@ export default async function Home() {
           ...PostCardFragment @defer
         }
     }
-`).run(client, {});
+  `).run(client, {});
 
   return (
     <div className="py-4 px-4">
