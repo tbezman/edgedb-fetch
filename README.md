@@ -55,11 +55,10 @@ module default {
 }
 ```
 
-```typescript
+```tsx
 // page.tsx
 
 export default async function Home() {
-
   /**
    * This is a fully type safe query fetching all posts from EdgeDB
    *
@@ -102,7 +101,7 @@ export default async function Home() {
 }
 ```
 
-```typescript
+```tsx
 // PostCard.tsx
 
 import Link from "next/link";
