@@ -25,7 +25,7 @@ operatorParts: (operator simpleExpression)*;
 
 leftExpression: simpleExpression;
 
-simpleExpression: cast? (function_call | variable | path | constant_expression);
+simpleExpression: function_call | variable | path | constant_expression;
 
 constant_expression: STRING | NUMBER | 'true' | 'false' | 'null';
 
@@ -57,8 +57,6 @@ functionArguments: functionArgument (',' functionArgument)*;
 functionArgument: name;
 
 variable: '$' name;
-
-cast: '<'type'>';
 
 selectionSet: fieldSelection*;
 
