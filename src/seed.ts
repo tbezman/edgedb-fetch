@@ -1,7 +1,7 @@
 import { faker } from "@faker-js/faker";
 import { client } from "./client";
 
-const USER_COUNT = 3;
+const USER_COUNT = 10;
 const POSTS_PER_USER = 5;
 const COMMENTS_PER_POST = 3;
 const PROABILITY_OF_COMMENT_REPLY = 0.8;
