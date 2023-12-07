@@ -20,7 +20,7 @@ export default async function PostPage({ params, searchParams }: PageProps) {
             content
 
             ...CommentSectionFragment @defer
-        } filter .id = <uuid>$id
+        } filter .id = $id
     }
   `).run(client, { id: params.id });
 

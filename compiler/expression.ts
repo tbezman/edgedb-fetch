@@ -9,11 +9,6 @@ export function writeSimpleExpression(
   simpleExpression: SimpleExpressionContext,
   argName: string,
 ) {
-  if (simpleExpression.cast()) {
-    const cast = simpleExpression.cast();
-    writer.write(`e.${cast.type_().getText()}(`);
-  }
-
   if (simpleExpression.function_call()) {
     const functionCall = simpleExpression.function_call();
     const functionName = functionCall.name().getText();
@@ -40,10 +35,6 @@ export function writeSimpleExpression(
   } else if (simpleExpression.variable()) {
     const variable = simpleExpression.variable();
     writer.write(`variables.${variable.name().getText()}`);
-  }
-
-  if (simpleExpression.cast()) {
-    writer.write(`)`);
   }
 }
 
