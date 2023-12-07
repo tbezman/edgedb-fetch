@@ -17,15 +17,13 @@ querySelectionSet: querySelection*;
 
 querySelection: fragmentSpread | name ':' SINGLE? type '{' selectionSet '}' potentialFilter?;
 
-potentialFilter: 'filter' expression;
+potentialFilter: 'filter' filter;
 
-expression: leftExpression operatorParts;
+filter: fieldName operator simpleExpression;
 
-operatorParts: (operator simpleExpression)*;
+fieldName: IDENTIFIER;
 
-leftExpression: simpleExpression;
-
-simpleExpression: function_call | variable | path | constant_expression;
+simpleExpression: variable | path | constant_expression;
 
 constant_expression: STRING | NUMBER | 'true' | 'false' | 'null';
 
@@ -40,15 +38,9 @@ ESC: '\\' (['"\\bfnrt] | UNICODE) ;
 fragment UNICODE: 'u' HEX HEX HEX HEX ;
 fragment HEX: [0-9a-fA-F] ;
 
-function_call: name '(' function_arguments ')';
-
-function_arguments: function_argument (',' function_argument)*;
-
-function_argument: expression;
-
 path: '.'name;
 
-operator: '=' | '<' | '>' | '<=' | '>=' | '!=' | 'in' | 'not in' | 'like' | 'not like' | 'is null' | 'is not null';
+operator: '=';
 
 functionCall: name '(' functionArguments ')';
 

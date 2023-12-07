@@ -3,9 +3,9 @@ import {
   SelectionSetContext,
   QuerySelectionContext,
 } from "../antlr/MyGrammarParser";
-import { writeExpression } from "./expression";
 import { getIncrementalArg } from "./getIncrementalArg";
 import { Program } from "./context";
+import { writeFilter } from "./filter";
 
 export function writeSelectionSetForQuerySelection(
   writer: CodeBlockWriter,
@@ -25,15 +25,11 @@ export function writeSelectionSetForQuerySelection(
         linkedField.selectionSet(),
       );
 
-      // if (linkedField.potentialFilter()) {
-      //   writer.write("filter: ");
-      //   writeExpression(
-      //     writer,
-      //     linkedField.potentialFilter().expression(),
-      //     arg,
-      //   );
-      //   writer.write(",");
-      // }
+      if (linkedField.potentialFilter()) {
+        writer.write("where: {");
+        writeFilter(writer, linkedField.potentialFilter().filter());
+        writer.write("},");
+      }
 
       writer.write(`}},`);
     } else if (selection.IDENTIFIER()) {
@@ -88,16 +84,17 @@ export function writeSelectFromQuerySelection(
 
   writeSelectionSetForQuerySelection(writer, program, selection.selectionSet());
 
-  // if (selection.potentialFilter()) {
-  //   const filter = selection.potentialFilter();
-  //   const expression = filter.expression();
+  writer.write("},");
 
-  //   writer.write("filter: ");
+  if (selection.potentialFilter()) {
+    const filter = selection.potentialFilter().filter();
 
-  //   writeExpression(writer, expression, arg);
+    writer.write("where: {");
 
-  //   writer.write(",");
-  // }
+    writeFilter(writer, filter);
 
-  writer.write(`}})`);
+    writer.write("},");
+  }
+
+  writer.write(`})`);
 }

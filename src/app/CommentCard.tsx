@@ -22,7 +22,7 @@ export function CommentCard({
       replies {
         id
         ...ReplyCommentCardFragment
-      } filter len(.text) > 50
+      }
 
       author {
         name
