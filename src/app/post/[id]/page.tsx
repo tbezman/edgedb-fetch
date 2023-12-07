@@ -19,7 +19,7 @@ export default async function PostPage({ params, searchParams }: PageProps) {
             title
             content
 
-            ...CommentSectionFragment @defer
+            ...CommentSectionFragment
         } filter .id = $id
     }
   `).run(client, { id: params.id });
@@ -33,7 +33,7 @@ export default async function PostPage({ params, searchParams }: PageProps) {
       <Header />
 
       <article className="flex flex-col max-w-2xl py-4 mx-auto">
-        <h1 className="text-2xl font-bold mb-2">{post?.title}</h1>
+        <h1 className="text-2xl font-bold mb-2">{post.title}</h1>
 
         <p>{post?.content}</p>
 
@@ -49,10 +49,7 @@ export default async function PostPage({ params, searchParams }: PageProps) {
             <h2 className="text-xl font-bold">Comments</h2>
 
             <ul className="space-y-8">
-              <CommentSection
-                searchParams={searchParams}
-                postRef={post.CommentSectionFragmentRef}
-              />
+              <CommentSection searchParams={searchParams} postRef={post} />
             </ul>
           </Suspense>
         </div>
@@ -80,7 +77,7 @@ function CommentSection({ postRef, searchParams }: CommentSectionProps) {
     return (
       <li key={comment.id}>
         <CommentCard
-          commentRef={comment.CommentCardFragmentRef}
+          commentRef={comment}
           highlightedCommentId={searchParams.highlightedComment}
         />
       </li>

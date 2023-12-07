@@ -17,7 +17,7 @@ export function CommentCard({
     fragment CommentCardFragment on Comment {
       id
       text
-      created_at
+      createdAt
 
       replies {
         id
@@ -39,7 +39,7 @@ export function CommentCard({
           </a>
           <span>-</span>
           <span className="text-sm">
-            {formatDistanceToNow(comment.created_at!)} ago
+            {formatDistanceToNow(comment.createdAt!)} ago
           </span>
         </div>
 
@@ -55,7 +55,7 @@ export function CommentCard({
               return (
                 <li key={reply.id}>
                   <ReplyCommentCard
-                    commentRef={reply.ReplyCommentCardFragmentRef}
+                    commentRef={reply}
                     highlightedCommentId={highlightedCommentId}
                   />
                 </li>

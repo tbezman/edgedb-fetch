@@ -6,11 +6,19 @@ export async function prettifyPath(path: string) {
   return new Promise<void>((resolve, reject) => {
     const proc = spawn("bun", args);
 
+    let output = "";
+
+    proc.stderr.on("data", (data) => {
+      // Accumulate the data in the output variable
+      output += data.toString();
+    });
+
     proc.on("exit", (code) => {
       if (code === 0) {
         resolve();
       } else {
-        reject(new Error(`Prettify process exited with code ${code}`));
+        console.log("OUTPUT", output);
+        reject(new Error(output));
       }
     });
 

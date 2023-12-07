@@ -56,13 +56,8 @@ export async function writeQueryFile(
   });
 
   sourceFile.addImportDeclaration({
-    moduleSpecifier: "edgedb/dist/ifaces",
-    namedImports: ["Executor"],
-  });
-
-  sourceFile.addImportDeclaration({
-    moduleSpecifier: "../dbschema/edgeql-js",
-    defaultImport: "e",
+    moduleSpecifier: "@prisma/client",
+    namedImports: ["PrismaClient"],
   });
 
   sourceFile.addImportDeclaration({
@@ -92,7 +87,7 @@ export async function writeQueryFile(
         writer.write(
           `const ${selection
             .name()
-            .getText()} = (variables: ${variablesType}) => {`,
+            .getText()} = (client: PrismaClient, variables: ${variablesType}) => {`,
         );
         writer.write("return ");
         writeSelectFromQuerySelection(writer, program, selection);
@@ -102,13 +97,13 @@ export async function writeQueryFile(
       writer.blankLine();
 
       writer.write(`return {
-          async run(client: Executor, variables: ${variablesType}) {
+          async run(client: PrismaClient, variables: ${variablesType}) {
             const promises = await Promise.all([${query.context
               .querySelectionSet()
               .querySelection_list()
               .map((selection) =>
                 selection.name().getText(),
-              )}(variables).run(client).then(result => {
+              )}(client,variables).then(result => {
                 let outcome = result;
 
                 convertToPromises(result, client, (newValue) => {

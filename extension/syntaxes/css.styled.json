@@ -76,7 +76,7 @@
             }
           },
           "patterns": [{ "include": "#selection-set" }],
-          "end": "(\\})\\s+(filter)\\s+(\\.(\\w+)\\s+(\\=)\\s+<(\\w+)>(\\$\\w+))",
+          "end": "(\\})\\s+(filter)\\s+(\\.(\\w+)\\s+(\\=)\\s+(\\$\\w+))",
           "endCaptures": {
             "2": {
               "name": "storage.type"

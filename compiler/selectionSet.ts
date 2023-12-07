@@ -11,7 +11,6 @@ export function writeSelectionSetForQuerySelection(
   writer: CodeBlockWriter,
   program: Program,
   selectionSetContext: SelectionSetContext,
-  arg: string,
 ) {
   for (const selection of selectionSetContext.fieldSelection_list()) {
     if (selection.linkedField()) {
@@ -19,25 +18,24 @@ export function writeSelectionSetForQuerySelection(
       writer.write(`${linkedField.IDENTIFIER().getText()}: `);
 
       const arg = getIncrementalArg();
-      writer.write(`(${arg}) => ({`);
+      writer.write(`{ select: {`);
       writeSelectionSetForQuerySelection(
         writer,
         program,
         linkedField.selectionSet(),
-        arg,
       );
 
-      if (linkedField.potentialFilter()) {
-        writer.write("filter: ");
-        writeExpression(
-          writer,
-          linkedField.potentialFilter().expression(),
-          arg,
-        );
-        writer.write(",");
-      }
+      // if (linkedField.potentialFilter()) {
+      //   writer.write("filter: ");
+      //   writeExpression(
+      //     writer,
+      //     linkedField.potentialFilter().expression(),
+      //     arg,
+      //   );
+      //   writer.write(",");
+      // }
 
-      writer.write(`}),`);
+      writer.write(`}},`);
     } else if (selection.IDENTIFIER()) {
       writer.write(`${selection.IDENTIFIER().getText()}: true,`);
     } else if (selection.fragmentSpread()) {
@@ -55,11 +53,6 @@ export function writeSelectionSetForQuerySelection(
         throw new Error(`Fragment ${spread.IDENTIFIER().getText()} not found`);
       }
 
-      writer.write(`${spread.IDENTIFIER().getText()}Ref: `);
-
-      const nextArg = getIncrementalArg();
-      writer.write(`e.select(${arg}, (${nextArg}) => ({`);
-
       if (isDeferred) {
         writer.write(
           `id: true, __deferred: e.select(true), fragmentName: e.select('${fragmentName}')`,
@@ -69,10 +62,8 @@ export function writeSelectionSetForQuerySelection(
           writer,
           program,
           fragment.context.selectionSet(),
-          nextArg,
         );
       }
-      writer.write("})),");
     }
   }
 }
@@ -83,34 +74,30 @@ export function writeSelectFromQuerySelection(
   selection: QuerySelectionContext,
 ) {
   const arg = getIncrementalArg();
+  const typeName = selection.type_().getText();
 
   if (selection.SINGLE()) {
-    writer.write(`e.assert_single(`);
+    writer.write(`client.${typeName.toLowerCase()}.findFirst(`);
+  } else {
+    writer.write(`client.${typeName.toLowerCase()}.findMany(`);
   }
 
-  writer.write(`e.select(e.${selection.type_().getText()}, (${arg}) => ({`);
+  writer.write(`{`);
 
-  writeSelectionSetForQuerySelection(
-    writer,
-    program,
-    selection.selectionSet(),
-    arg,
-  );
+  writer.write(`select: {`);
 
-  if (selection.potentialFilter()) {
-    const filter = selection.potentialFilter();
-    const expression = filter.expression();
+  writeSelectionSetForQuerySelection(writer, program, selection.selectionSet());
 
-    writer.write("filter: ");
+  // if (selection.potentialFilter()) {
+  //   const filter = selection.potentialFilter();
+  //   const expression = filter.expression();
 
-    writeExpression(writer, expression, arg);
+  //   writer.write("filter: ");
 
-    writer.write(",");
-  }
+  //   writeExpression(writer, expression, arg);
 
-  writer.write(`}))`);
+  //   writer.write(",");
+  // }
 
-  if (selection.SINGLE()) {
-    writer.write(`)`);
-  }
+  writer.write(`}})`);
 }

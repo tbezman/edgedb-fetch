@@ -24,46 +24,38 @@ export async function writeFragmentFile(
   });
 
   sourceFile.addImportDeclaration({
-    moduleSpecifier: "../dbschema/edgeql-js",
-    defaultImport: "e",
-  });
-
-  sourceFile.addImportDeclaration({
-    namedImports: ["setToTsType"],
-    moduleSpecifier: "../dbschema/edgeql-js/typesystem",
+    moduleSpecifier: "@prisma/client",
+    isTypeOnly: true,
+    namedImports: ["PrismaClient"],
   });
 
   sourceFile.addFunction({
     isExported: true,
+    isAsync: true,
     name: `select${fragmentName}`,
     parameters: [{ name: "id", type: "string" }],
     statements: (writer) => {
-      const arg = getIncrementalArg();
-      writer.write(
-        `return e.select(e.${fragment.context
-          .entity()
-          .getText()}, (${arg}) => ({`,
-      );
+      writer.write(`let client: PrismaClient;`);
 
-      writer.write(`filter_single: e.op(${arg}.id, "=", e.uuid(id)),`);
+      const fragmentType = fragment.context.entity().IDENTIFIER().getText();
+      writer.write(
+        `return client!.${fragmentType.toLowerCase()}.findFirst({ select : {`,
+      );
 
       writeSelectionSetForQuerySelection(
         writer,
         program,
         fragment.context.selectionSet(),
-        arg,
       );
 
-      writer.write("}))");
+      writer.write("}});");
     },
   });
 
   sourceFile.addTypeAlias({
     isExported: true,
     name: `${fragmentName}ValueType`,
-    type: `NonNullable<setToTsType<ReturnType<typeof select${fragment.context
-      .name()
-      .getText()}>>>`,
+    type: `NonNullable<Awaited<ReturnType<typeof select${fragmentName}>>>`,
   });
 
   sourceFile.addTypeAlias({

@@ -8,7 +8,7 @@ export default async function Home() {
     query PostQuery {
         posts: Post {
           id
-          ...PostCardFragment @defer
+          ...PostCardFragment
         }
     }
   `).run(client, {});
@@ -22,7 +22,7 @@ export default async function Home() {
           return (
             <li key={post.id}>
               <Suspense fallback={<FallbackCard />}>
-                <PostCard postRef={post.PostCardFragmentRef} />
+                <PostCard postRef={post} />
               </Suspense>
             </li>
           );
