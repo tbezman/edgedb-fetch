@@ -1,21 +1,25 @@
 "use client";
 import { useEffect, useRef } from "react";
+import { edgeql } from "../../dist/manifest";
+import { ReplyCommentCardFragmentRef } from "../../dist/ReplyCommentCardFragment";
 
 type ReplyCommentCardProps = {
   highlightedCommentId?: string;
-  commentRef: {
-    id: string;
-    text: string;
-    author: {
-      name: string;
-    };
-  };
+  commentRef: ReplyCommentCardFragmentRef;
 };
 
 export function ReplyCommentCard({
-  commentRef: comment,
+  commentRef,
   highlightedCommentId,
 }: ReplyCommentCardProps) {
+  const comment = edgeql(`fragment ReplyCommentCardFragment on Comment {
+    id
+    text
+    author {
+      name
+    }
+  }`).pull(commentRef);
+
   const elementRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
