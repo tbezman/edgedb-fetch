@@ -7,18 +7,19 @@ import { useEffect, useRef } from "react";
 import { submitReply } from "./submitReply";
 import { useFormStatus } from "react-dom";
 import { useRouter } from "next/navigation";
+import { useQueryState } from "next-usequerystate";
 
 type ReplyButtonProps = {
   commentId: string;
 };
 
 export function ReplyButton({ commentId }: ReplyButtonProps) {
-  const searchParams = useSearchParams();
-
-  const replyTo = searchParams.get("reply_to");
+  const [replyTo, setReplyTo] = useQueryState("reply_to", { shallow: true });
 
   const router = useRouter();
   async function handleSubmit(data: FormData) {
+    setReplyTo(null);
+
     const reply = await submitReply(data);
 
     await router.replace(`?highlightedComment=${reply.id}`, { scroll: false });
@@ -38,7 +39,7 @@ export function ReplyButton({ commentId }: ReplyButtonProps) {
         replyTo === commentId &&
         !(event.target instanceof HTMLAnchorElement)
       ) {
-        router.replace("?", { scroll: false });
+        setReplyTo(null);
       }
     }
 
@@ -47,13 +48,17 @@ export function ReplyButton({ commentId }: ReplyButtonProps) {
     return () => {
       window.removeEventListener("click", handleClickOutside);
     };
-  }, [commentId, replyTo, router]);
+  }, [commentId, replyTo, router, setReplyTo]);
 
   return (
     <div className="relative">
       <Link
         replace
         scroll={false}
+        onClick={(e) => {
+          e.preventDefault();
+          setReplyTo(commentId);
+        }}
         href={`?reply_to=${commentId}`}
         className="text-blue-700 underline text-sm"
       >
