@@ -1,7 +1,6 @@
 "use server";
 
 import { client } from "@/client";
-import e from "../../dbschema/edgeql-js";
 
 export async function submitReply(formdata: FormData) {
   const text = formdata.get("text")?.toString();
@@ -11,26 +10,15 @@ export async function submitReply(formdata: FormData) {
     throw new Error("Missing text");
   }
 
-  const parentComment = commentId
-    ? e.assert_single(
-        e.select(e.Comment, (comment) => ({
-          filter: e.op(comment.id, "=", e.uuid(commentId)),
-        })),
-      )
-    : undefined;
+  const userCount = await client.user.count();
+  const randomSkip = Math.floor(Math.random() * userCount);
+  const randomUser = await client.user.findFirstOrThrow({ skip: randomSkip });
 
-  const author = e.assert_single(
-    e.select(e.User, (user) => ({
-      order_by: e.select(e.random()),
-      limit: 1,
-    })),
-  );
-
-  return await e
-    .insert(e.Comment, {
+  return client.comment.create({
+    data: {
       text,
-      author,
-      parentComment,
-    })
-    .run(client);
+      authorId: randomUser.id,
+      parentId: commentId,
+    },
+  });
 }

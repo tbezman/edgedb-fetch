@@ -3,18 +3,14 @@ import { edgeql } from "../../dist/manifest";
 import { PostCardFragmentRef } from "../../dist/PostCardFragment";
 
 type PostCardProps = {
-  postRef: PostCardFragmentRef;
+  postRef: {
+    id: string;
+    title: string;
+    content: string;
+  };
 };
 
-export function PostCard({ postRef }: PostCardProps) {
-  const post = edgeql(`
-    fragment PostCardFragment on Post {
-      id
-      title
-      content
-    }
-  `).pull(postRef);
-
+export function PostCard({ postRef: post }: PostCardProps) {
   return (
     <article className="flex flex-col max-w-2xl mx-auto">
       <Link

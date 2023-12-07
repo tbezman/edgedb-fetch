@@ -9,12 +9,13 @@
     "compile": "bun antlr && bun ./compiler/compiler.ts",
     "lint": "next lint",
     "antlr": "rm -rf antlr/* && java -jar ./antlr.jar -Dlanguage=TypeScript -o antlr -visitor ./MyGrammar.g4",
-    "generate": "bunx @edgedb/generate edgeql-js",
-    "migrate": "edgedb database wipe --non-interactive && edgedb migrate && edgedb migration create --non-interactive --allow-unsafe && edgedb migrate; bun generate"
+    "generate": "prisma generate",
+    "migrate": "prisma db push"
   },
   "dependencies": {
     "@faker-js/faker": "^8.2.0",
     "@heroicons/react": "^2.0.18",
+    "@prisma/client": "5.7.0",
     "@total-typescript/ts-reset": "^0.5.1",
     "antlr4": "^4.13.1-patch-1",
     "chalk": "^5.3.0",
@@ -27,7 +28,6 @@
     "ts-morph": "^20.0.0"
   },
   "devDependencies": {
-    "@edgedb/generate": "^0.3.4",
     "@types/glob-watcher": "^5.0.5",
     "@types/node": "^20",
     "@types/react": "^18",
@@ -41,6 +41,8 @@
     "prettier": "^3.1.0",
     "prisma": "^5.7.0",
     "tailwindcss": "^3",
+    "ts-node": "^10.9.1",
+    "tsx": "^4.6.2",
     "typescript": "^5"
   }
 }

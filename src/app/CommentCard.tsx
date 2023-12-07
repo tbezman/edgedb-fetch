@@ -1,35 +1,34 @@
 import { formatDistanceToNow } from "date-fns";
 import { ReplyButton } from "./ReplyButton";
 import { ReplyCommentCard } from "./ReplyCommentCard";
-import { edgeql } from "../../dist/manifest";
-import { CommentCardFragmentRef } from "../../dist/CommentCardFragment";
 
 type CommentCardProps = {
-  commentRef: CommentCardFragmentRef;
+  commentRef: {
+    id: string;
+    text: string;
+    createdAt: Date;
+
+    replies: Array<{
+      id: string;
+
+      text: string;
+
+      author: {
+        name: string;
+      };
+    }>;
+
+    author: {
+      name: string;
+    };
+  };
   highlightedCommentId?: string;
 };
 
 export function CommentCard({
-  commentRef,
+  commentRef: comment,
   highlightedCommentId,
 }: CommentCardProps) {
-  const comment = edgeql(`
-    fragment CommentCardFragment on Comment {
-      id
-      text
-      created_at
-
-      replies {
-        id
-        ...ReplyCommentCardFragment
-      } filter len(.text) > 50
-
-      author {
-        name
-      }
-    }
-  `).pull(commentRef);
-
   return (
     <div>
       <div className="flex items-baseline justify-between">
@@ -39,7 +38,7 @@ export function CommentCard({
           </a>
           <span>-</span>
           <span className="text-sm">
-            {formatDistanceToNow(comment.created_at!)} ago
+            {formatDistanceToNow(comment.createdAt)} ago
           </span>
         </div>
 
@@ -55,7 +54,7 @@ export function CommentCard({
               return (
                 <li key={reply.id}>
                   <ReplyCommentCard
-                    commentRef={reply.ReplyCommentCardFragmentRef}
+                    commentRef={reply}
                     highlightedCommentId={highlightedCommentId}
                   />
                 </li>

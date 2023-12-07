@@ -4,14 +4,13 @@ import { PropsWithChildren, Suspense } from "react";
 import { client } from "@/client";
 
 export default async function Home() {
-  const { posts } = await edgeql(`
-    query PostQuery {
-        posts: Post {
-          id
-          ...PostCardFragment @defer
-        }
-    }
-  `).run(client, {});
+  const posts = await client.post.findMany({
+    select: {
+      id: true,
+      title: true,
+      content: true,
+    },
+  });
 
   return (
     <div className="py-4 px-4">
@@ -22,7 +21,7 @@ export default async function Home() {
           return (
             <li key={post.id}>
               <Suspense fallback={<FallbackCard />}>
-                <PostCard postRef={post.PostCardFragmentRef} />
+                <PostCard postRef={post} />
               </Suspense>
             </li>
           );

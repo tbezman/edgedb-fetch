@@ -1,3 +1,5 @@
-import { createClient } from "../dbschema/edgeql-js";
-
-export const client = createClient();
+import { PrismaClient } from "@prisma/client";
+export const client = new PrismaClient({
+  datasourceUrl:
+    "postgresql://terence:terence@localhost:5432/testing?schema=public",
+});

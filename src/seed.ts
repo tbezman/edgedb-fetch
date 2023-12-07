@@ -1,5 +1,4 @@
 import { faker } from "@faker-js/faker";
-import e from "../dbschema/edgeql-js";
 import { client } from "./client";
 
 const USER_COUNT = 3;
@@ -8,90 +7,75 @@ const COMMENTS_PER_POST = 3;
 const PROABILITY_OF_COMMENT_REPLY = 0.8;
 
 async function seed() {
-  await e.delete(e.Comment).run(client);
-  await e.delete(e.Post).run(client);
-  await e.delete(e.User).run(client);
+  console.log("Starting seed....");
+  await client.comment.deleteMany({});
+  await client.post.deleteMany();
+  await client.user.deleteMany();
+
+  console.log("After delete");
 
   for (let i = 0; i < USER_COUNT; i++) {
-    const newUser = await e
-      .insert(e.User, {
+    const newUser = await client.user.create({
+      data: {
         name: faker.person.fullName(),
         age: faker.number.int({ min: 18, max: 80 }),
-      })
-      .run(client);
+      },
+    });
 
     for (let j = 0; j < POSTS_PER_USER; j++) {
-      const newPost = await e
-        .insert(e.Post, {
+      const newPost = await client.post.create({
+        data: {
           title: faker.lorem.sentence(),
           content: faker.lorem.paragraph(10),
           published: faker.datatype.boolean(),
-          author: e.assert_single(
-            e.select(e.User, (user) => ({
-              filter: e.op(user.id, "=", e.uuid(newUser.id)),
-            })),
-          ),
-        })
-        .run(client);
+          authorId: newUser.id,
+        },
+      });
 
       for (let k = 0; k < COMMENTS_PER_POST; k++) {
-        const newComment = await e
-          .insert(e.Comment, {
-            text: faker.lorem.sentences(2),
+        const userCount = await client.user.count();
 
-            created_at: faker.date.past({ years: 1 }),
-
-            parentPost: e.assert_single(
-              e.select(e.Post, (post) => ({
-                filter: e.op(post.id, "=", e.uuid(newPost.id)),
-              })),
-            ),
-
-            author: e.assert_single(
-              e.select(e.User, (user) => ({
-                order_by: e.select(e.random()),
-                limit: 1,
-              })),
-            ),
-          })
-          .run(client);
+        const newComment = await client.comment.create({
+          data: {
+            text: faker.lorem.sentence(),
+            postId: newPost.id,
+            authorId: (
+              await client.user.findFirstOrThrow({
+                skip: Math.floor(Math.random() * userCount),
+              })
+            ).id,
+          },
+        });
 
         while (Math.random() < PROABILITY_OF_COMMENT_REPLY) {
-          const reply = await e
-            .insert(e.Comment, {
-              text: faker.lorem.sentences(2),
+          const reply = await client.comment.create({
+            data: {
+              text: faker.lorem.sentence(),
 
-              created_at: faker.date.past({ years: 1 }),
+              authorId: (
+                await client.user.findFirstOrThrow({
+                  skip: Math.floor(Math.random() * userCount),
+                })
+              ).id,
 
-              // select a random user for the author
-              author: e.assert_single(
-                e.select(e.User, (user) => ({
-                  order_by: e.select(e.random()),
-                  limit: 1,
-                })),
-              ),
-
-              parentComment: e.assert_single(
-                e.select(e.Comment, (comment) => ({
-                  filter: e.op(comment.id, "=", e.uuid(newComment.id)),
-                })),
-              ),
-            })
-            .run(client);
+              postId: newPost.id,
+              parentId: newComment.id,
+            },
+          });
         }
       }
     }
   }
 
-  const userCount = await e.select(e.count(e.User)).run(client);
-  const postCount = await e.select(e.count(e.Post)).run(client);
-  const commentCount = await e.select(e.count(e.Comment)).run(client);
+  const userCount = await client.user.count();
+  const postCount = await client.post.count();
+  const commentCount = await client.comment.count();
 
   console.log("Users: ", userCount);
   console.log("Posts: ", postCount);
   console.log("Comment: ", commentCount);
 
-  process.exit(0);
+  // process.exit(0);
 }
 
-seed();
+await seed();
