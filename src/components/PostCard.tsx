@@ -1,10 +1,9 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "./Link";
 import { edgeql } from "../../dist/manifest";
 import { PostCardFragmentRef } from "../../dist/PostCardFragment";
-import { useCallback, MouseEvent, useTransition } from "react";
-import router, { useRouter } from "next/router";
+import { useTransition } from "react";
 
 type PostCardProps = {
   postRef: PostCardFragmentRef;
@@ -21,23 +20,10 @@ export function PostCard({ postRef }: PostCardProps) {
 
   const [isTransitioning, startTransition] = useTransition();
 
-  const handleLinkClick = useCallback(
-    (event: MouseEvent<HTMLAnchorElement>) => {
-      startTransition(() => {
-        router.push(event.currentTarget.href);
-      });
-    },
-    [],
-  );
-
   return (
     <article className="flex flex-col max-w-2xl mx-auto">
       <div className="flex items-center gap-x-2">
-        <Link
-          href={`/post/${post.id}`}
-          onClick={handleLinkClick}
-          className="text-blue-600 underline visited:text-gray-700 focus:scale-[.98] origin-left transition-transform duration-100"
-        >
+        <Link href={`/post/${post.id}`}>
           <h3 className="font-medium">{post.title}</h3>
         </Link>
 
