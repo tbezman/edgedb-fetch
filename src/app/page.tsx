@@ -20,11 +20,11 @@ export default async function Home() {
       <ul className="list-inside space-y-4">
         {posts.map((post) => {
           return (
-            <li key={post.id}>
-              <Suspense fallback={<FallbackCard />}>
+            <Suspense key={post.id} fallback={<FallbackCard />}>
+              <li>
                 <PostCard postRef={post} />
-              </Suspense>
-            </li>
+              </li>
+            </Suspense>
           );
         })}
       </ul>

@@ -38,7 +38,12 @@ html {
   animation-timing-function: linear;
 
   background: #ffecb3; /* Light blue base color */
-  background: linear-gradient(to right, #ffecb3 8%, #ffd54f 10%, #ffecb3 33%);
+  background: linear-gradient(
+    to right,
+    theme("colors.blue.500") 8%,
+    theme("colors.blue.500") 10%,
+    theme("colors.blue.500") 33%
+  );
 
   background-size: 800px 104px;
   position: relative;

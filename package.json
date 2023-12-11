@@ -23,8 +23,8 @@
     "fast-glob": "^3.3.2",
     "next": "^14.0.3",
     "next-usequerystate": "^1.13.0",
-    "react": "^18",
-    "react-dom": "^18",
+    "react": "canary",
+    "react-dom": "^18.3.0-canary-5bcade5fc-20231208",
     "ts-morph": "^20.0.0"
   },
   "devDependencies": {

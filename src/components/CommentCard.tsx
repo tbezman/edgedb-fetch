@@ -1,9 +1,13 @@
 import { formatDistanceToNow } from "date-fns";
 import { ReplyButton } from "./ReplyButton";
-import { ReplyCommentCard } from "./ReplyCommentCard";
+import { ReplyCommentCard, ReplyCommentCardFallback } from "./ReplyCommentCard";
 import { edgeql } from "../../dist/manifest";
 import { CommentCardFragmentRef } from "../../dist/CommentCardFragment";
 import { Suspense } from "react";
+
+export function CommentCardFallback() {
+  return <div className="h-12 w-full bg-blue-100 animate-pulse rounded" />;
+}
 
 type CommentCardProps = {
   commentRef: CommentCardFragmentRef;
@@ -51,7 +55,7 @@ export function CommentCard({ commentRef }: CommentCardProps) {
             {comment.replies.map((reply) => {
               return (
                 <li key={reply.id}>
-                  <Suspense fallback={<div>Loading ReplyComment</div>}>
+                  <Suspense fallback={<ReplyCommentCardFallback />}>
                     <ReplyCommentCard commentRef={reply} />
                   </Suspense>
                 </li>

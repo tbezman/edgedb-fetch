@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { edgeql } from "../../dist/manifest";
 import { CommentSectionFragmentRef } from "../../dist/CommentSectionFragment";
-import { CommentCard } from "./CommentCard";
+import { CommentCard, CommentCardFallback } from "./CommentCard";
 
 type PostDetailProps = {
   postRef: any;
@@ -25,14 +25,7 @@ export function PostDetail({ postRef }: PostDetailProps) {
       <p>{post?.content}</p>
 
       <div className="mt-4">
-        <Suspense
-          fallback={
-            <div className="flex items-center gap-x-2">
-              <h2 className="text-xl font-bold">Comments</h2>
-              <Spinner />
-            </div>
-          }
-        >
+        <Suspense fallback={<CommentSectionFallback />}>
           <h2 className="text-xl font-bold">Comments</h2>
 
           <ul className="space-y-8">
@@ -41,6 +34,34 @@ export function PostDetail({ postRef }: PostDetailProps) {
         </Suspense>
       </div>
     </article>
+  );
+}
+
+export function PostDetailFallback() {
+  return (
+    <article className="flex flex-col max-w-2xl py-4 mx-auto">
+      <h1 className="text-2xl font-bold mb-2 animate-pulse bg-blue-100 rounded">
+        {" "}
+      </h1>
+
+      <p className="animate-pulse rounded bg-blue-100 h-[176px]"></p>
+
+      <div className="mt-4">
+        <div className="flex items-center gap-x-2">
+          <h2 className="text-xl font-bold">Comments</h2>
+          <Spinner />
+        </div>
+      </div>
+    </article>
+  );
+}
+
+export function CommentSectionFallback() {
+  return (
+    <div className="flex items-center gap-x-2">
+      <h2 className="text-xl font-bold">Comments</h2>
+      <Spinner />
+    </div>
   );
 }
 
@@ -61,7 +82,7 @@ function CommentSection({ postRef }: CommentSectionProps) {
   return post?.comments.map((comment) => {
     return (
       <li key={comment.id}>
-        <Suspense fallback={<div>Loading Comment...</div>}>
+        <Suspense fallback={<CommentCardFallback />}>
           <CommentCard commentRef={comment} />
         </Suspense>
       </li>

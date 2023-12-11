@@ -4,6 +4,12 @@ import { edgeql } from "../../dist/manifest";
 import { ReplyCommentCardFragmentRef } from "../../dist/ReplyCommentCardFragment";
 import { useQueryState } from "next-usequerystate";
 
+export function ReplyCommentCardFallback() {
+  return (
+    <div className="ml-4 h-[47px] w-full bg-blue-100 animate-pulse rounded" />
+  );
+}
+
 type ReplyCommentCardProps = {
   highlightedCommentId?: string;
   commentRef: ReplyCommentCardFragmentRef;

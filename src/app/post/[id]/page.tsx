@@ -5,7 +5,7 @@ import { Suspense } from "react";
 import { CommentSectionFragmentRef } from "../../../../dist/CommentSectionFragment";
 import { notFound } from "next/navigation";
 import { client } from "@/client";
-import { PostDetail } from "@/components/PostDetail";
+import { PostDetail, PostDetailFallback } from "@/components/PostDetail";
 
 type PageProps = {
   searchParams: { highlightedComment?: string };
@@ -29,7 +29,7 @@ export default async function PostPage({ params, searchParams }: PageProps) {
     <>
       <Header />
 
-      <Suspense fallback={<div>Detail Loading...</div>}>
+      <Suspense fallback={<PostDetailFallback />}>
         <PostDetail postRef={post} />
       </Suspense>
     </>
