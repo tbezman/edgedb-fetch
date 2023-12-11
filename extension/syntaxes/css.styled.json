@@ -76,19 +76,25 @@
             }
           },
           "patterns": [{ "include": "#selection-set" }],
-          "end": "(\\})\\s+(filter)\\s+(\\.(\\w+)\\s+(\\=)\\s+(\\$\\w+))",
+          "end": "\\}(.*)",
           "endCaptures": {
-            "2": {
-              "name": "storage.type"
-            },
-            "5": {
-              "name": "keyword.operator"
-            },
-            "6": {
-              "name": "keyword.control"
-            },
-            "7": {
-              "name": "variable"
+            "1": {
+              "patterns": [
+                {
+                  "match": "\\s*(filter)\\s+(\\w+)\\s+(=)\\s+(\\$)(\\w+)",
+                  "captures": {
+                    "1": {
+                      "name": "storage.type"
+                    },
+                    "4": {
+                      "name": "keyword.operator"
+                    },
+                    "5": {
+                      "name": "variable"
+                    }
+                  }
+                }
+              ]
             }
           }
         }

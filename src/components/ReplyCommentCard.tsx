@@ -2,16 +2,14 @@
 import { useEffect, useRef } from "react";
 import { edgeql } from "../../dist/manifest";
 import { ReplyCommentCardFragmentRef } from "../../dist/ReplyCommentCardFragment";
+import { useQueryState } from "next-usequerystate";
 
 type ReplyCommentCardProps = {
   highlightedCommentId?: string;
   commentRef: ReplyCommentCardFragmentRef;
 };
 
-export function ReplyCommentCard({
-  commentRef,
-  highlightedCommentId,
-}: ReplyCommentCardProps) {
+export function ReplyCommentCard({ commentRef }: ReplyCommentCardProps) {
   const comment = edgeql(`fragment ReplyCommentCardFragment on Comment {
     id
     text
@@ -21,6 +19,9 @@ export function ReplyCommentCard({
   }`).pull(commentRef);
 
   const elementRef = useRef<HTMLDivElement | null>(null);
+
+  const [highlightedCommentId, setHighlightedCommentId] =
+    useQueryState("highlightedComment");
 
   useEffect(() => {
     if (highlightedCommentId === comment.id) {

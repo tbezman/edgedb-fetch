@@ -6,13 +6,9 @@ import { CommentCardFragmentRef } from "../../dist/CommentCardFragment";
 
 type CommentCardProps = {
   commentRef: CommentCardFragmentRef;
-  highlightedCommentId?: string;
 };
 
-export function CommentCard({
-  commentRef,
-  highlightedCommentId,
-}: CommentCardProps) {
+export function CommentCard({ commentRef }: CommentCardProps) {
   const comment = edgeql(`
     fragment CommentCardFragment on Comment {
       id
@@ -54,10 +50,7 @@ export function CommentCard({
             {comment.replies.map((reply) => {
               return (
                 <li key={reply.id}>
-                  <ReplyCommentCard
-                    commentRef={reply}
-                    highlightedCommentId={highlightedCommentId}
-                  />
+                  <ReplyCommentCard commentRef={reply} />
                 </li>
               );
             })}
