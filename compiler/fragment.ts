@@ -62,7 +62,11 @@ export async function writeFragmentFile(
         fragment.context.selectionSet(),
       );
 
-      writer.write("}});");
+      writer.write("},");
+
+      writer.write("where: { id }");
+
+      writer.write("});");
 
       writer.write(
         "await new Promise((resolve) => setTimeout(resolve, Math.random() * 1000));",
