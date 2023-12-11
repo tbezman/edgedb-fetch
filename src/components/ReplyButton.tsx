@@ -2,7 +2,7 @@
 import { faker } from "@faker-js/faker";
 
 import Link from "next/link";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useTransition } from "react";
 import { submitReply } from "./submitReply";
 import { useFormStatus } from "react-dom";
 import { useRouter } from "next/navigation";
@@ -16,14 +16,20 @@ type ReplyButtonProps = {
 export function ReplyButton({ commentId }: ReplyButtonProps) {
   const [replyTo, setReplyTo] = useQueryState("reply_to", { shallow: true });
 
+  const [isTransitioning, transition] = useTransition();
+
+  const [, setHighlightedCommentId] = useQueryState("highlightedComment", {
+    startTransition: transition,
+  });
+
   const router = useRouter();
   async function handleSubmit(data: FormData) {
-    setReplyTo(null);
-
     const reply = await submitReply(data);
 
-    await router.replace(`?highlightedComment=${reply.id}`, { scroll: false });
-    await router.refresh();
+    transition(() => {
+      setReplyTo(null);
+      setHighlightedCommentId(reply.id);
+    });
   }
 
   const formRef = useRef<HTMLFormElement | null>(null);
