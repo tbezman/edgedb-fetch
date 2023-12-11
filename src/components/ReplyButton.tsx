@@ -7,6 +7,7 @@ import { submitReply } from "./submitReply";
 import { useFormStatus } from "react-dom";
 import { useRouter } from "next/navigation";
 import { useQueryState } from "next-usequerystate";
+import { motion, AnimatePresence } from "framer-motion";
 
 type ReplyButtonProps = {
   commentId: string;
@@ -64,25 +65,30 @@ export function ReplyButton({ commentId }: ReplyButtonProps) {
         Reply
       </Link>
 
-      {replyTo === commentId ? (
-        <form
-          ref={formRef}
-          action={handleSubmit}
-          onClick={(e) => e.stopPropagation()}
-          className="absolute right-0 z-10 bg-white p-4 rounded flex flex-col shadow"
-        >
-          <textarea
-            name="text"
-            className="w-[300px] rounded p-1 border border-blue-300"
-            rows={6}
-            defaultValue={faker.lorem.paragraph(3)}
-          />
+      <AnimatePresence>
+        {replyTo === commentId ? (
+          <motion.form
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 8 }}
+            ref={formRef}
+            action={handleSubmit}
+            onClick={(e) => e.stopPropagation()}
+            className="absolute right-0 z-10 bg-white p-5 rounded-lg flex flex-col shadow-lg"
+          >
+            <textarea
+              name="text"
+              className="w-[500px] rounded p-1 border border-blue-300"
+              rows={10}
+              defaultValue={faker.lorem.paragraph(3)}
+            />
 
-          <input name="commentId" type="hidden" value={commentId} />
+            <input name="commentId" type="hidden" value={commentId} />
 
-          <SubmitButton />
-        </form>
-      ) : null}
+            <SubmitButton />
+          </motion.form>
+        ) : null}
+      </AnimatePresence>
     </div>
   );
 }
@@ -91,7 +97,7 @@ function SubmitButton() {
   const status = useFormStatus();
 
   return (
-    <button className="bg-blue-900 text-white w-24 mt-2 self-end rounded">
+    <button className="bg-blue-900 text-white w-24 mt-2 py-2 self-end rounded">
       {status.pending ? "..." : "Reply"}
     </button>
   );

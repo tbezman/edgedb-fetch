@@ -36,7 +36,7 @@ export function PostCard({ postRef }: PostCardProps) {
         <Link
           href={`/post/${post.id}`}
           onClick={handleLinkClick}
-          className="text-blue-600 underline visited:text-gray-700 focus:scale-[.99] origin-left transition-transform duration-100"
+          className="text-blue-600 underline visited:text-gray-700 focus:scale-[.98] origin-left transition-transform duration-100"
         >
           <h3 className="font-medium">{post.title}</h3>
         </Link>

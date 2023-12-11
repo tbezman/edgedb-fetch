@@ -17,7 +17,7 @@ export async function submitReply(formdata: FormData) {
     skip: randomUserSkip,
   });
 
-  await client.comment.create({
+  return await client.comment.create({
     data: {
       text: text,
       parentId: commentId,
