@@ -1,4 +1,4 @@
-import { FallbackCard, PostCard } from "@/app/PostCard";
+import { FallbackCard, PostCard } from "@/components/PostCard";
 import { edgeql } from "../../dist/manifest";
 import { PropsWithChildren, Suspense } from "react";
 import { client } from "@/client";

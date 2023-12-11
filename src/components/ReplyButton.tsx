@@ -2,7 +2,6 @@
 import { faker } from "@faker-js/faker";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { useEffect, useRef } from "react";
 import { submitReply } from "./submitReply";
 import { useFormStatus } from "react-dom";

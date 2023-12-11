@@ -1,4 +1,4 @@
-import { CommentCard } from "@/app/CommentCard";
+import { CommentCard } from "@/components/CommentCard";
 import Link from "next/link";
 import { edgeql } from "../../../../dist/manifest";
 import { Suspense } from "react";
