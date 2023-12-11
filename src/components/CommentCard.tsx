@@ -3,6 +3,7 @@ import { ReplyButton } from "./ReplyButton";
 import { ReplyCommentCard } from "./ReplyCommentCard";
 import { edgeql } from "../../dist/manifest";
 import { CommentCardFragmentRef } from "../../dist/CommentCardFragment";
+import { Suspense } from "react";
 
 type CommentCardProps = {
   commentRef: CommentCardFragmentRef;
@@ -17,7 +18,7 @@ export function CommentCard({ commentRef }: CommentCardProps) {
 
       replies {
         id
-        ...ReplyCommentCardFragment
+        ...ReplyCommentCardFragment @defer
       }
 
       author {
@@ -50,7 +51,9 @@ export function CommentCard({ commentRef }: CommentCardProps) {
             {comment.replies.map((reply) => {
               return (
                 <li key={reply.id}>
-                  <ReplyCommentCard commentRef={reply} />
+                  <Suspense fallback={<div>Loading ReplyComment</div>}>
+                    <ReplyCommentCard commentRef={reply} />
+                  </Suspense>
                 </li>
               );
             })}

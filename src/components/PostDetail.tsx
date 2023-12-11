@@ -14,7 +14,7 @@ export function PostDetail({ postRef }: PostDetailProps) {
       title
       content
 
-      ...CommentSectionFragment
+      ...CommentSectionFragment @defer
     }
   `).pull(postRef);
 
@@ -53,7 +53,7 @@ function CommentSection({ postRef }: CommentSectionProps) {
     fragment CommentSectionFragment on Post {
       comments {
         id
-        ...CommentCardFragment
+        ...CommentCardFragment @defer
       }
     }
   `).pull(postRef);
@@ -61,7 +61,9 @@ function CommentSection({ postRef }: CommentSectionProps) {
   return post?.comments.map((comment) => {
     return (
       <li key={comment.id}>
-        <CommentCard commentRef={comment} />
+        <Suspense fallback={<div>Loading Comment...</div>}>
+          <CommentCard commentRef={comment} />
+        </Suspense>
       </li>
     );
   });

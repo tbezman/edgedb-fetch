@@ -1,67 +1,40 @@
-import { Executor } from "edgedb/dist/ifaces";
+import { PrismaClient } from "@prisma/client";
+import { type DeferredFragmentPath } from "../deferredFragmentsVisitor";
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+type FragmentMap = Map<string, () => any>;
+
 export function convertToPromises(
-  item: unknown,
-  client: Executor,
-  updateSelf: (value: unknown) => void,
-  fragmentSelectMap: Map<string, (id: string) => any>,
+  path: DeferredFragmentPath,
+  result: Array<Record<string, unknown>> | Record<string, unknown> | null,
+  fragmentMap: FragmentMap,
+  client: PrismaClient,
 ) {
-  if (!item) {
+  if (!result) {
     return;
-  } else if (Array.isArray(item)) {
-    for (const index in item) {
-      const sub = item[index];
+  }
 
-      convertToPromises(
-        sub,
-        client,
-        (newValue) => {
-          item[index] = newValue;
-        },
-        fragmentSelectMap,
-      );
+  if (Array.isArray(result)) {
+    result.forEach((item) => {
+      convertToPromises(path, item, fragmentMap, client);
+    });
+  } else if (path.path.length === 0) {
+    result.__deferred__ = {};
+
+    for (const spread of path.fragmentSpreads) {
+      result.__deferred__[spread] = fragmentMap.get(spread)(client, result.id);
     }
-  } else if (typeof item === "object") {
-    if (
-      "__deferred" in item &&
-      "fragmentName" in item &&
-      "id" in item &&
-      typeof item.fragmentName === "string" &&
-      typeof item.id === "string"
-    ) {
-      const selectFunction = fragmentSelectMap.get(item.fragmentName);
-
-      if (!selectFunction) {
-        throw new Error(`Fragment: ${item.fragmentName} did not exist.`);
-      }
-
-      const nextValue = selectFunction(item.id)
-        .run(client)
-        .then(async (result: any) => {
-          // TODO(Terence): Remove this timeout which only exists for demo purposes.
-          await wait(Math.random() * 500);
-
-          return result;
-        });
-
-      updateSelf(nextValue);
-    } else {
-      for (const key in item) {
-        // @ts-expect-error Haven't figured out types yet
-        const value = item[key];
-
-        convertToPromises(
-          value,
-          client,
-          (newValue) => {
-            // @ts-expect-error Haven't figured out types yet
-            item[key] = newValue;
-          },
-          fragmentSelectMap,
-        );
-      }
-    }
+  } else {
+    const [nextPathPart, ...rest] = path.path;
+    return convertToPromises(
+      {
+        ...path,
+        path: rest,
+      },
+      result[nextPathPart] as any,
+      fragmentMap,
+      client,
+    );
   }
 }

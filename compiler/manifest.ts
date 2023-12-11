@@ -88,7 +88,7 @@ export async function writeManifestFile(program: Program) {
   }
 
   for (const [key, value] of program.fragments.entries()) {
-    manifest.addStatements(`map.set(\`${value.source}\`, select${key});`);
+    manifest.addStatements(`map.set(\`${value.source}\`, '${key}');`);
   }
 
   manifest.addFunction({
@@ -101,10 +101,10 @@ export async function writeManifestFile(program: Program) {
   return {
     run(client: any, variables: any) { return map.get(tag)().run(client, variables) },
     pull(ref: any) { 
-      if('__deferred' in ref) {
-        throw new Error("Did not expect to actually see _deferred, that's just for types");
-      } else if (ref instanceof Promise) {
-        return use(ref);
+      const fragmentName = map.get(tag);
+
+      if ('__deferred__' in ref && fragmentName in ref.__deferred__) {
+        return use(ref.__deferred__[fragmentName]);
       } else {
         return ref;
       }

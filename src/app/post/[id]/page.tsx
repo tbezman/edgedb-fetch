@@ -16,7 +16,7 @@ export default async function PostPage({ params, searchParams }: PageProps) {
   const { post } = await edgeql(`
     query PostPageQuery(id: string) {
         post: single Post {
-          ...PostDetailFragment
+          ...PostDetailFragment @defer
         } filter id = $id
     }
   `).run(client, { id: params.id });
@@ -29,7 +29,9 @@ export default async function PostPage({ params, searchParams }: PageProps) {
     <>
       <Header />
 
-      <PostDetail postRef={post} />
+      <Suspense fallback={<div>Detail Loading...</div>}>
+        <PostDetail postRef={post} />
+      </Suspense>
     </>
   );
 }
@@ -45,3 +47,6 @@ function Header() {
     </Link>
   );
 }
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;

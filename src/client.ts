@@ -1,5 +1,15 @@
 import { PrismaClient } from "@prisma/client";
-export const client = new PrismaClient({
-  datasourceUrl:
-    "postgresql://terence:terence@localhost:5432/testing?schema=public",
-});
+
+const prismaClientSingleton = () => {
+  return new PrismaClient();
+};
+
+declare global {
+  var prisma: undefined | ReturnType<typeof prismaClientSingleton>;
+}
+
+const prisma = globalThis.prisma ?? prismaClientSingleton();
+
+export { prisma as client };
+
+if (process.env.NODE_ENV !== "production") globalThis.prisma = prisma;

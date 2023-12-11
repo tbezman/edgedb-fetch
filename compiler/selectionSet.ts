@@ -6,6 +6,7 @@ import {
 import { getIncrementalArg } from "./getIncrementalArg";
 import { Program } from "./context";
 import { writeFilter } from "./filter";
+import { isFragmentSpreadDeferred } from "./isDeferred";
 
 export function writeSelectionSetForQuerySelection(
   writer: CodeBlockWriter,
@@ -38,11 +39,7 @@ export function writeSelectionSetForQuerySelection(
       const spread = selection.fragmentSpread();
       const fragmentName = spread.IDENTIFIER().getText();
       const fragment = program.fragments.get(fragmentName);
-      const isDeferred = spread
-        .maybeDirectives()
-        ?.directives()
-        .directive_list()
-        .some((directive) => directive.name().getText() === "defer");
+      const isDeferred = isFragmentSpreadDeferred(spread);
 
       if (!fragment) {
         console.log(program.fragments.entries());
@@ -50,9 +47,7 @@ export function writeSelectionSetForQuerySelection(
       }
 
       if (isDeferred) {
-        writer.write(
-          `id: true, __deferred: e.select(true), fragmentName: e.select('${fragmentName}')`,
-        );
+        writer.write(`id: true`);
       } else {
         writeSelectionSetForQuerySelection(
           writer,
@@ -69,7 +64,6 @@ export function writeSelectFromQuerySelection(
   program: Program,
   selection: QuerySelectionContext,
 ) {
-  const arg = getIncrementalArg();
   const typeName = selection.type_().getText();
 
   if (selection.SINGLE()) {

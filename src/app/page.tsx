@@ -5,10 +5,10 @@ import { client } from "@/client";
 
 export default async function Home() {
   const { posts } = await edgeql(`
-    query PostQuery {
+    query PostsQuery {
         posts: Post {
           id
-          ...PostCardFragment
+          ...PostCardFragment @defer
         }
     }
   `).run(client, {});

@@ -6,35 +6,11 @@ import { writeSelectFromQuerySelection } from "./selectionSet";
 import { prettifyPath } from "./prettifyPath";
 import { SourceFile, VariableDeclarationKind } from "ts-morph";
 import chalk from "chalk";
-
-function addFragmentMapToSourceFile(sourceFile: SourceFile, program: Program) {
-  for (const fragment of program.fragments.values()) {
-    sourceFile.addImportDeclaration({
-      namedImports: [`select${fragment.context.name().getText()}`],
-      moduleSpecifier: `./${fragment.context.name().getText()}`,
-    });
-  }
-
-  sourceFile.addVariableStatement({
-    declarationKind: VariableDeclarationKind.Const,
-    declarations: [
-      {
-        name: "fragmentSelectMap",
-        initializer: `new Map<string, any>()`,
-      },
-    ],
-  });
-
-  for (const fragment of program.fragments.values()) {
-    const fragmentName = fragment.context.name().getText();
-
-    sourceFile.addStatements((writer) => {
-      writer.write(
-        `fragmentSelectMap.set("${fragmentName}", select${fragmentName})`,
-      );
-    });
-  }
-}
+import {
+  DeferredFragmentsVisitor,
+  isFragmentPathValid,
+} from "./deferredFragmentsVisitor";
+import { addFragmentMapToSourceFile } from "./addFragmentSelectMap";
 
 export async function writeQueryFile(
   program: Program,
@@ -78,6 +54,13 @@ export async function writeQueryFile(
       : "{}",
   });
 
+  sourceFile.addVariableStatement({
+    declarationKind: VariableDeclarationKind.Const,
+    declarations: [
+      { name: "fragmentMap", initializer: "new Map<string, () => any>" },
+    ],
+  });
+
   sourceFile.addFunction({
     name: query.context.name().getText(),
     statements: (writer) => {
@@ -96,34 +79,54 @@ export async function writeQueryFile(
 
       writer.blankLine();
 
+      const querySelectionList = query.context
+        .querySelectionSet()
+        .querySelection_list();
+
       writer.write(`return {
-          async run(client: PrismaClient, variables: ${variablesType}) {
-            const promises = await Promise.all([${query.context
-              .querySelectionSet()
-              .querySelection_list()
-              .map((selection) =>
-                selection.name().getText(),
-              )}(client,variables).then(result => {
-                let outcome = result;
+        async run(client: PrismaClient, variables: ${variablesType}) {`);
 
-                convertToPromises(result, client, (newValue) => {
-                  // @ts-expect-error Haven't figured out types yet
-                  outcome = newValue;
-                }, fragmentSelectMap);
+      for (const selection of querySelectionList) {
+        writer.write(`const ${selection.name().getText()}Promise =`);
 
-                return outcome;
-              })]);
-          
-            return {
-              ${query.context
-                .querySelectionSet()
-                .querySelection_list()
-                .map((selection, index) => {
-                  return `${selection.name().getText()}: promises[${index}]`;
-                })} 
-            }
-          }
-      }`);
+        writer.write(
+          `${selection.name().getText()}(client, variables).then((result)=> {`,
+        );
+
+        const visitor = new DeferredFragmentsVisitor(program);
+        visitor.visit(selection);
+        visitor.fragmentPaths;
+
+        if (isFragmentPathValid(visitor.fragmentPaths)) {
+          writer.write(`let path = ${JSON.stringify(visitor.fragmentPaths)};`);
+
+          writer.write(
+            "convertToPromises(path, result, fragmentSelectMap, client);",
+          );
+        }
+
+        writer.write("return result;");
+
+        writer.write(`})`);
+      }
+
+      writer.blankLine();
+
+      writer.write(`
+          const promises = await Promise.all([${querySelectionList.map(
+            (selection) => `${selection.name().getText()}Promise`,
+          )}]);`);
+
+      writer.write(`
+          return {
+            ${querySelectionList.map((selection, index) => {
+              return `${selection.name().getText()}: promises[${index}]`;
+            })}
+          };
+      `);
+
+      writer.write(`}`);
+      writer.write(`}`);
     },
     isExported: true,
   });
