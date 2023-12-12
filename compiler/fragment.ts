@@ -68,9 +68,9 @@ export async function writeFragmentFile(
 
       writer.write("});");
 
-      writer.write(
-        "await new Promise((resolve) => setTimeout(resolve, Math.random() * 1000));",
-      );
+      // writer.write(
+      //   "await new Promise((resolve) => setTimeout(resolve, Math.random() * 1000));",
+      // );
 
       const visitor = new DeferredFragmentsVisitor(program);
       visitor.visit(fragment.context.selectionSet());

@@ -2,5 +2,12 @@
   "typescript.tsdk": "node_modules/typescript/lib",
   "explorer.excludeGitIgnore": false,
   "search.useGlobalIgnoreFiles": true,
-  "search.useIgnoreFiles": false
+  "search.useIgnoreFiles": false,
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/bower_components": true,
+    "**/*.code-search": true,
+    ".next": true,
+    "dist/": true
+  }
 }
