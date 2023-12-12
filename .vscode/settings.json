@@ -1,3 +1,6 @@
 {
-  "typescript.tsdk": "node_modules/typescript/lib"
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "explorer.excludeGitIgnore": false,
+  "search.useGlobalIgnoreFiles": true,
+  "search.useIgnoreFiles": false
 }

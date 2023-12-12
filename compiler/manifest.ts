@@ -52,7 +52,7 @@ export async function writeManifestFile(program: Program) {
         { name: "tag", type: `"${originalText.split("\n").join("\\n")}"` },
       ],
       returnType: `{
-      run: (client: Executor, variables: ${queryName}Variables) => Promise<ReturnType<ReturnType<typeof ${queryName}>['run']>>,
+      run: (client: Executor, variables: ${queryName}Variables) => ReturnType<ReturnType<typeof ${queryName}>['run']>,
       }`,
     });
   }
