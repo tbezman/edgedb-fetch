@@ -18,7 +18,7 @@ export default async function PostPage({ params, searchParams }: PageProps) {
         title: true,
         content: true,
 
-        ...CommentSectionFragment(post),
+        CommentSection: e.select(post, (arg) => CommentSectionFragment(arg)),
 
         filter: e.op(post.id, "=", e.uuid(params.id)),
       })),
@@ -50,7 +50,10 @@ export default async function PostPage({ params, searchParams }: PageProps) {
             <h2 className="text-xl font-bold">Comments</h2>
 
             <ul className="space-y-8">
-              <CommentSection searchParams={searchParams} post={post} />
+              <CommentSection
+                searchParams={searchParams}
+                post={post.CommentSection}
+              />
             </ul>
           </Suspense>
         </div>
@@ -59,15 +62,13 @@ export default async function PostPage({ params, searchParams }: PageProps) {
   );
 }
 
-const CommentSectionFragment = e.shape(e.Post, (post) => {
-  return {
-    comments: {
-      id: true,
+const CommentSectionFragment = e.shape(e.Post, (post) => ({
+  comments: (comment) => ({
+    id: true,
 
-      ...CommentCardFragment(post),
-    },
-  };
-});
+    CommentCardFragment: e.select(comment, (arg) => CommentCardFragment(arg)),
+  }),
+}));
 
 type CommentSectionFragmentRef = RefType<
   typeof e.Post,
@@ -84,7 +85,7 @@ function CommentSection({ post, searchParams }: CommentSectionProps) {
     return (
       <li key={comment.id}>
         <CommentCard
-          comment={comment}
+          comment={comment.CommentCardFragment}
           highlightedCommentId={searchParams.highlightedComment}
         />
       </li>

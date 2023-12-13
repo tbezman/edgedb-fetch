@@ -1,8 +1,9 @@
 import e from "../../dbschema/edgeql-js";
 import { formatDistanceToNow } from "date-fns";
 import { ReplyButton } from "./ReplyButton";
-import { ReplyCommentCard, ReplyCommentCardFragment } from "./ReplyCommentCard";
+import { ReplyCommentCard } from "./ReplyCommentCard";
 import { RefType } from "@/types";
+import { ReplyCommentCardFragment } from "./ReplyCommentCardFragment";
 
 export const CommentCardFragment = e.shape(e.Comment, (comment) => ({
   id: true,
@@ -13,11 +14,13 @@ export const CommentCardFragment = e.shape(e.Comment, (comment) => ({
     name: true,
   },
 
-  replies: {
+  replies: (reply) => ({
     id: true,
 
-    ...ReplyCommentCardFragment(comment),
-  },
+    ReplyCommentCard: e.select(reply, (arg) =>
+      ReplyCommentCardFragment(comment),
+    ),
+  }),
 }));
 
 type CommentCardFragmentRef = RefType<
@@ -59,7 +62,7 @@ export function CommentCard({
               return (
                 <li key={reply.id}>
                   <ReplyCommentCard
-                    comment={reply}
+                    comment={reply.ReplyCommentCard}
                     highlightedCommentId={highlightedCommentId}
                   />
                 </li>
