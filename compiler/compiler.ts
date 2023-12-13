@@ -38,19 +38,13 @@ manifest.addImportDeclaration({
   namedImports: ["$linkPropify"],
 });
 
-const things: Array<{ name: string; type: string }> = [];
+const fragments: Array<{ name: string }> = [];
 for (const file of files) {
   const declarations = file.getVariableDeclarations();
 
   for (const declaration of declarations) {
     if (declaration.getName().endsWith("Fragment")) {
-      const type = declaration
-        .getText()
-        .split(",")[0]
-        .split("(")[1]
-        .split(".")[1];
-
-      things.push({ name: declaration.getName(), type });
+      fragments.push({ name: declaration.getName() });
 
       manifest.addVariableStatement({
         declarationKind: VariableDeclarationKind.Const,
@@ -74,8 +68,8 @@ manifest.addVariableStatement({
       initializer: (writer) => {
         writer.write("{");
 
-        for (const thing of things) {
-          writer.write(thing.name + ",");
+        for (const fragment of fragments) {
+          writer.write(fragment.name + ",");
         }
 
         writer.write("} as const");
@@ -87,11 +81,11 @@ manifest.addVariableStatement({
 manifest.addFunction({
   name: "spread",
   isExported: true,
-  overloads: things.map((thing) => {
+  overloads: fragments.map((fragment) => {
     return {
       typeParameters: [{ name: "Expr", constraint: "ObjectTypeExpression" }],
       parameters: [
-        { name: "fragmentName", type: `'${thing.name}'` },
+        { name: "fragmentName", type: `'${fragment.name}'` },
         {
           name: "expr",
           type: "Expr",
@@ -99,11 +93,11 @@ manifest.addFunction({
       ],
       returnType: (writer) => {
         writer.writeLine(`{
-        '${thing.name}': $expr_Select<{
+        '${fragment.name}': $expr_Select<{
           __element__: ObjectType<
             \`\${Expr["__element__"]["__name__"]}\`, // _shape
             Expr["__element__"]["__pointers__"],
-            Omit<normaliseShape<ReturnType<typeof ${thing.name}>>, SelectModifierNames>
+            Omit<normaliseShape<ReturnType<typeof ${fragment.name}>>, SelectModifierNames>
           >;
           __cardinality__: typeof Cardinality.One;
         }>;
