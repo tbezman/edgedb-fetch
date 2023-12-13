@@ -2,8 +2,7 @@ import e from "../../dbschema/edgeql-js";
 import { formatDistanceToNow } from "date-fns";
 import { ReplyButton } from "./ReplyButton";
 import { ReplyCommentCard } from "./ReplyCommentCard";
-import { RefType } from "@/types";
-import { spread } from "../../dist/manifest";
+import { CommentCardFragmentRef, spread } from "../../dist/manifest";
 
 export const CommentCardFragment = e.shape(e.Comment, (comment) => ({
   id: true,
@@ -20,11 +19,6 @@ export const CommentCardFragment = e.shape(e.Comment, (comment) => ({
     ...spread("ReplyCommentCardFragment", reply),
   }),
 }));
-
-type CommentCardFragmentRef = RefType<
-  typeof e.Comment,
-  typeof CommentCardFragment
->;
 
 type CommentCardProps = {
   comment: CommentCardFragmentRef;

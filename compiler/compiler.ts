@@ -38,12 +38,23 @@ manifest.addImportDeclaration({
   namedImports: ["$linkPropify"],
 });
 
+manifest.addImportDeclaration({
+  namedImports: ["RefType"],
+  moduleSpecifier: "../src/types",
+});
+
 const fragments: Array<{ name: string }> = [];
 for (const file of files) {
   const declarations = file.getVariableDeclarations();
 
   for (const declaration of declarations) {
     if (declaration.getName().endsWith("Fragment")) {
+      const type = declaration
+        .getText()
+        .split(",")[0]
+        .split("(")[1]
+        .split(".")[1];
+
       fragments.push({ name: declaration.getName() });
 
       manifest.addVariableStatement({
@@ -54,6 +65,12 @@ for (const file of files) {
             initializer: declaration.getInitializer()?.getText(),
           },
         ],
+      });
+
+      manifest.addTypeAlias({
+        isExported: true,
+        name: declaration.getName() + "Ref",
+        type: `RefType<typeof e.${type}, typeof ${declaration.getName()}>`,
       });
     }
   }

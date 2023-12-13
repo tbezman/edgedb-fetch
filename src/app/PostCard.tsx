@@ -1,6 +1,6 @@
 import e from "../../dbschema/edgeql-js";
 import Link from "next/link";
-import { RefType } from "@/types";
+import { PostCardFragmentRef } from "../../dist/manifest";
 
 export const PostCardFragment = e.shape(e.Post, () => ({
   id: true,
@@ -8,10 +8,8 @@ export const PostCardFragment = e.shape(e.Post, () => ({
   content: true,
 }));
 
-type PostCardRef = RefType<typeof e.Post, typeof PostCardFragment>;
-
 type PostCardProps = {
-  post: PostCardRef;
+  post: PostCardFragmentRef;
 };
 
 export function PostCard({ post }: PostCardProps) {

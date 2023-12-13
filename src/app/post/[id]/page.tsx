@@ -5,7 +5,7 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { client } from "@/client";
 import { RefType } from "@/types";
-import { spread } from "../../../../dist/manifest";
+import { CommentSectionFragmentRef, spread } from "../../../../dist/manifest";
 
 type PageProps = {
   searchParams: { highlightedComment?: string };
@@ -70,11 +70,6 @@ const CommentSectionFragment = e.shape(e.Post, (post) => ({
     ...spread("CommentCardFragment", comment),
   }),
 }));
-
-type CommentSectionFragmentRef = RefType<
-  typeof e.Post,
-  typeof CommentSectionFragment
->;
 
 type CommentSectionProps = {
   post: CommentSectionFragmentRef;
