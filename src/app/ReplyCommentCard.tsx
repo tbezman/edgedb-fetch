@@ -1,17 +1,33 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { ReplyCommentCardFragmentRef } from "./ReplyCommentCardFragment";
+import { RefType } from "@/types";
+import e from "../../dbschema/edgeql-js";
+
+export const ReplyCommentCardFragment = e.shape(e.Comment, (comment) => ({
+  id: true,
+  author: {
+    name: true,
+  },
+  text: true,
+}));
 
 type ReplyCommentCardProps = {
   highlightedCommentId?: string;
   comment: ReplyCommentCardFragmentRef;
 };
 
+export type ReplyCommentCardFragmentRef = RefType<
+  typeof e.Comment,
+  typeof ReplyCommentCardFragment
+>;
+
 export function ReplyCommentCard({
   comment,
   highlightedCommentId,
 }: ReplyCommentCardProps) {
+  console.log("Comment", comment);
+
   const elementRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {

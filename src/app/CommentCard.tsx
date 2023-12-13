@@ -3,7 +3,7 @@ import { formatDistanceToNow } from "date-fns";
 import { ReplyButton } from "./ReplyButton";
 import { ReplyCommentCard } from "./ReplyCommentCard";
 import { RefType } from "@/types";
-import { ReplyCommentCardFragment } from "./ReplyCommentCardFragment";
+import { spread } from "../../dist/manifest";
 
 export const CommentCardFragment = e.shape(e.Comment, (comment) => ({
   id: true,
@@ -17,9 +17,7 @@ export const CommentCardFragment = e.shape(e.Comment, (comment) => ({
   replies: (reply) => ({
     id: true,
 
-    ReplyCommentCard: e.select(reply, (arg) =>
-      ReplyCommentCardFragment(comment),
-    ),
+    ...spread("ReplyCommentCardFragment", reply),
   }),
 }));
 
@@ -62,7 +60,7 @@ export function CommentCard({
               return (
                 <li key={reply.id}>
                   <ReplyCommentCard
-                    comment={reply.ReplyCommentCard}
+                    comment={reply.ReplyCommentCardFragment}
                     highlightedCommentId={highlightedCommentId}
                   />
                 </li>

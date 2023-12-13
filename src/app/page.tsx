@@ -2,11 +2,14 @@ import e from "../../dbschema/edgeql-js";
 import { FallbackCard, PostCard, PostCardFragment } from "@/app/PostCard";
 import { PropsWithChildren, Suspense } from "react";
 import { client } from "@/client";
+import { spread } from "../../dist/manifest";
 
 export default async function Home() {
   const posts = await e
     .select(e.Post, (post) => ({
-      ...PostCardFragment(post),
+      id: true,
+
+      ...spread("PostCardFragment", post),
     }))
     .run(client);
 
@@ -19,7 +22,7 @@ export default async function Home() {
           return (
             <li key={post.id}>
               <Suspense fallback={<FallbackCard />}>
-                <PostCard post={post} />
+                <PostCard post={post.PostCardFragment} />
               </Suspense>
             </li>
           );

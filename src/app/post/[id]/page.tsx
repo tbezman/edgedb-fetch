@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { client } from "@/client";
 import { RefType } from "@/types";
+import { spread } from "../../../../dist/manifest";
 
 type PageProps = {
   searchParams: { highlightedComment?: string };
@@ -18,7 +19,7 @@ export default async function PostPage({ params, searchParams }: PageProps) {
         title: true,
         content: true,
 
-        CommentSection: e.select(post, (arg) => CommentSectionFragment(arg)),
+        ...spread("CommentSectionFragment", post),
 
         filter: e.op(post.id, "=", e.uuid(params.id)),
       })),
@@ -52,7 +53,7 @@ export default async function PostPage({ params, searchParams }: PageProps) {
             <ul className="space-y-8">
               <CommentSection
                 searchParams={searchParams}
-                post={post.CommentSection}
+                post={post.CommentSectionFragment}
               />
             </ul>
           </Suspense>
@@ -66,7 +67,7 @@ const CommentSectionFragment = e.shape(e.Post, (post) => ({
   comments: (comment) => ({
     id: true,
 
-    CommentCardFragment: e.select(comment, (arg) => CommentCardFragment(arg)),
+    ...spread("CommentCardFragment", comment),
   }),
 }));
 
