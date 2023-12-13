@@ -1,20 +1,20 @@
+import e from "../../dbschema/edgeql-js";
 import Link from "next/link";
-import { edgeql } from "../../dist/manifest";
-import { PostCardFragmentRef } from "../../dist/PostCardFragment";
+import { RefType } from "@/types";
+
+export const PostCardFragment = e.shape(e.Post, () => ({
+  id: true,
+  title: true,
+  content: true,
+}));
+
+type PostCardRef = RefType<typeof e.Post, typeof PostCardFragment>;
 
 type PostCardProps = {
-  postRef: PostCardFragmentRef;
+  post: PostCardRef;
 };
 
-export function PostCard({ postRef }: PostCardProps) {
-  const post = edgeql(`
-    fragment PostCardFragment on Post {
-      id
-      title
-      content
-    }
-  `).pull(postRef);
-
+export function PostCard({ post }: PostCardProps) {
   return (
     <article className="flex flex-col max-w-2xl mx-auto">
       <Link

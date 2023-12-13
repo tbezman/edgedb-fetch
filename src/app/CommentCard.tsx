@@ -1,35 +1,39 @@
+import e from "../../dbschema/edgeql-js";
 import { formatDistanceToNow } from "date-fns";
 import { ReplyButton } from "./ReplyButton";
-import { ReplyCommentCard } from "./ReplyCommentCard";
-import { edgeql } from "../../dist/manifest";
-import { CommentCardFragmentRef } from "../../dist/CommentCardFragment";
+import { ReplyCommentCard, ReplyCommentCardFragment } from "./ReplyCommentCard";
+import { RefType } from "@/types";
+
+export const CommentCardFragment = e.shape(e.Comment, (comment) => ({
+  id: true,
+  text: true,
+  created_at: true,
+
+  author: {
+    name: true,
+  },
+
+  replies: {
+    id: true,
+
+    ...ReplyCommentCardFragment(comment),
+  },
+}));
+
+type CommentCardFragmentRef = RefType<
+  typeof e.Comment,
+  typeof CommentCardFragment
+>;
 
 type CommentCardProps = {
-  commentRef: CommentCardFragmentRef;
+  comment: CommentCardFragmentRef;
   highlightedCommentId?: string;
 };
 
 export function CommentCard({
-  commentRef,
+  comment,
   highlightedCommentId,
 }: CommentCardProps) {
-  const comment = edgeql(`
-    fragment CommentCardFragment on Comment {
-      id
-      text
-      created_at
-
-      replies {
-        id
-        ...ReplyCommentCardFragment
-      } filter len(.text) > 50
-
-      author {
-        name
-      }
-    }
-  `).pull(commentRef);
-
   return (
     <div>
       <div className="flex items-baseline justify-between">
@@ -55,7 +59,7 @@ export function CommentCard({
               return (
                 <li key={reply.id}>
                   <ReplyCommentCard
-                    commentRef={reply.ReplyCommentCardFragmentRef}
+                    comment={reply}
                     highlightedCommentId={highlightedCommentId}
                   />
                 </li>

@@ -1,10 +1,10 @@
-import { CommentCard } from "@/app/CommentCard";
+import e from "../../../../dbschema/edgeql-js";
+import { CommentCard, CommentCardFragment } from "@/app/CommentCard";
 import Link from "next/link";
-import { edgeql } from "../../../../dist/manifest";
 import { Suspense } from "react";
-import { CommentSectionFragmentRef } from "../../../../dist/CommentSectionFragment";
 import { notFound } from "next/navigation";
 import { client } from "@/client";
+import { RefType } from "@/types";
 
 type PageProps = {
   searchParams: { highlightedComment?: string };
@@ -12,17 +12,18 @@ type PageProps = {
 };
 
 export default async function PostPage({ params, searchParams }: PageProps) {
-  const { post } = await edgeql(`
-    query PostPageQuery(id: string) {
-        post: single Post {
-            id
-            title
-            content
+  const post = await e
+    .assert_single(
+      e.select(e.Post, (post) => ({
+        title: true,
+        content: true,
 
-            ...CommentSectionFragment @defer
-        } filter .id = <uuid>$id
-    }
-  `).run(client, { id: params.id });
+        ...CommentSectionFragment(post),
+
+        filter: e.op(post.id, "=", e.uuid(params.id)),
+      })),
+    )
+    .run(client);
 
   if (!post) {
     return notFound();
@@ -33,9 +34,9 @@ export default async function PostPage({ params, searchParams }: PageProps) {
       <Header />
 
       <article className="flex flex-col max-w-2xl py-4 mx-auto">
-        <h1 className="text-2xl font-bold mb-2">{post?.title}</h1>
+        <h1 className="text-2xl font-bold mb-2">{post.title}</h1>
 
-        <p>{post?.content}</p>
+        <p>{post.content}</p>
 
         <div className="mt-4">
           <Suspense
@@ -49,10 +50,7 @@ export default async function PostPage({ params, searchParams }: PageProps) {
             <h2 className="text-xl font-bold">Comments</h2>
 
             <ul className="space-y-8">
-              <CommentSection
-                searchParams={searchParams}
-                postRef={post.CommentSectionFragmentRef}
-              />
+              <CommentSection searchParams={searchParams} post={post} />
             </ul>
           </Suspense>
         </div>
@@ -61,26 +59,32 @@ export default async function PostPage({ params, searchParams }: PageProps) {
   );
 }
 
+const CommentSectionFragment = e.shape(e.Post, (post) => {
+  return {
+    comments: {
+      id: true,
+
+      ...CommentCardFragment(post),
+    },
+  };
+});
+
+type CommentSectionFragmentRef = RefType<
+  typeof e.Post,
+  typeof CommentSectionFragment
+>;
+
 type CommentSectionProps = {
-  postRef: CommentSectionFragmentRef;
+  post: CommentSectionFragmentRef;
   searchParams: { highlightedComment?: string };
 };
 
-function CommentSection({ postRef, searchParams }: CommentSectionProps) {
-  const post = edgeql(`
-    fragment CommentSectionFragment on Post {
-      comments {
-        id
-        ...CommentCardFragment
-      }
-    }
-  `).pull(postRef);
-
-  return post?.comments.map((comment) => {
+function CommentSection({ post, searchParams }: CommentSectionProps) {
+  return post?.comments?.map((comment) => {
     return (
       <li key={comment.id}>
         <CommentCard
-          commentRef={comment.CommentCardFragmentRef}
+          comment={comment}
           highlightedCommentId={searchParams.highlightedComment}
         />
       </li>
