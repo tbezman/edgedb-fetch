@@ -4,7 +4,7 @@ import { faker } from "@faker-js/faker";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useRef } from "react";
-import { submitReply } from "./submitReply";
+import { submitReply } from "../actions/submitReply";
 import { useFormStatus } from "react-dom";
 import { useRouter } from "next/navigation";
 import { useQueryState } from "next-usequerystate";

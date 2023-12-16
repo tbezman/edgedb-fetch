@@ -1,5 +1,5 @@
 import e from "../../../../dbschema/edgeql-js";
-import { CommentCard, CommentCardFragment } from "@/app/CommentCard";
+import { CommentCard, CommentCardFragment } from "@/ components/CommentCard";
 import Link from "next/link";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";

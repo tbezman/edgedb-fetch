@@ -1,5 +1,9 @@
 import e from "../../dbschema/edgeql-js";
-import { FallbackCard, PostCard, PostCardFragment } from "@/app/PostCard";
+import {
+  FallbackCard,
+  PostCard,
+  PostCardFragment,
+} from "@/ components/PostCard";
 import { PropsWithChildren, Suspense } from "react";
 import { client } from "@/client";
 import { spread } from "../../dist/manifest";
