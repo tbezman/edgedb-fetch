@@ -20,7 +20,7 @@
     "date-fns": "^2.30.0",
     "edgedb": "^1.4.1",
     "fast-glob": "^3.3.2",
-    "next": "^14.0.4",
+    "next": "canary",
     "next-usequerystate": "^1.13.0",
     "react": "^18",
     "react-dom": "^18",
