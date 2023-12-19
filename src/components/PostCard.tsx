@@ -1,6 +1,11 @@
+"use client";
+
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useTransition } from "react";
 import e from "../../dbschema/edgeql-js";
 import { PostCardPostFragmentRef } from "../../dist/manifest";
+import { Spinner } from "./Spinner";
 
 type PostCardProps = {
   postRef: PostCardPostFragmentRef;
@@ -15,13 +20,25 @@ export function PostCard({ postRef }: PostCardProps) {
     }))
     .pull(postRef);
 
+  const router = useRouter();
+  const [isTransitioning, startTransition] = useTransition();
+
   return (
     <article className="flex flex-col max-w-2xl mx-auto">
       <Link
         href={`/post/${post.id}`}
-        className="text-blue-600 underline visited:text-gray-700"
+        onClick={(e) => {
+          e.preventDefault();
+
+          startTransition(() => {
+            router.push(`/post/${post.id}`);
+          });
+        }}
+        className="text-blue-600 underline visited:text-gray-700 flex items-baseline gap-x-2 transition-transform duration-300 active:scale-[.99] origin-left"
       >
         <h3 className="font-medium">{post.title}</h3>
+
+        {isTransitioning ? <Spinner className="w-3 h-3" /> : null}
       </Link>
 
       <p className="line-clamp-2">{post.content}</p>
