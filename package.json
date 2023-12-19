@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "bun remove @edgedb/generate && bun add @edgedb/generate && bun compile && next build",
+    "build": "bun compile && next build",
     "start": "next start",
     "compile": "bun ./compiler/compiler.ts",
     "lint": "next lint",
@@ -27,7 +27,7 @@
     "ts-morph": "^20.0.0"
   },
   "devDependencies": {
-    "@edgedb/generate": "link:/Users/terence/Code/edgedb-js/packages/generate",
+    "@edgedb/generate": "^0.4.1",
     "@types/glob-watcher": "^5.0.5",
     "@types/node": "^20",
     "@types/react": "^18",
