@@ -2,10 +2,13 @@ import e from "../../dbschema/edgeql-js";
 import { formatDistanceToNow } from "date-fns";
 import { ReplyButton } from "./ReplyButton";
 import { ReplyCommentCard } from "./ReplyCommentCard";
-import { ReplyCommentCardCommentFragment } from "../../dist/manifest";
+import {
+  CommentCardCommentFragmentRef,
+  ReplyCommentCardCommentFragment,
+} from "../../dist/manifest";
 
 type CommentCardProps = {
-  commentRef: any;
+  commentRef: CommentCardCommentFragmentRef;
   highlightedCommentId?: string;
 };
 
@@ -14,7 +17,7 @@ export function CommentCard({
   highlightedCommentId,
 }: CommentCardProps) {
   const comment = e
-    .shape(e.Comment, (comment) => ({
+    .fragment("CommentCardCommentFragment", e.Comment, (comment) => ({
       id: true,
       text: true,
       created_at: true,

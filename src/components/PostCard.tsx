@@ -1,14 +1,14 @@
 import e from "../../dbschema/edgeql-js";
 import Link from "next/link";
-import { PostCardFragmentRef } from "../../dist/manifest";
+import { PostCardPostFragmentRef } from "../../dist/manifest";
 
 type PostCardProps = {
-  postRef: PostCardFragmentRef;
+  postRef: PostCardPostFragmentRef;
 };
 
 export function PostCard({ postRef }: PostCardProps) {
   const post = e
-    .fragment(e.Post, () => ({
+    .fragment("PostCardPostFragment", e.Post, () => ({
       id: true,
       title: true,
       content: true,

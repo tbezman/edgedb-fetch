@@ -1,15 +1,13 @@
 import e from "../../../../dbschema/edgeql-js";
-import { CommentCard, CommentCardFragment } from "@/ components/CommentCard";
+import { CommentCard } from "@/components/CommentCard";
 import Link from "next/link";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { client } from "@/client";
-import { RefType } from "@/types";
 import {
   CommentCardCommentFragment,
-  CommentSectionFragmentRef,
-  pagePostFragment,
-  spread,
+  CommentSectionPostFragment,
+  CommentSectionPostFragmentRef,
 } from "../../../../dist/manifest";
 
 type PageProps = {
@@ -24,7 +22,7 @@ export default async function PostPage({ params, searchParams }: PageProps) {
         title: true,
         content: true,
 
-        ...pagePostFragment(post),
+        ...CommentSectionPostFragment(post),
 
         filter: e.op(post.id, "=", e.uuid(params.id)),
       })),
@@ -66,13 +64,13 @@ export default async function PostPage({ params, searchParams }: PageProps) {
 }
 
 type CommentSectionProps = {
-  postRef: any;
+  postRef: CommentSectionPostFragmentRef;
   searchParams: { highlightedComment?: string };
 };
 
 function CommentSection({ postRef, searchParams }: CommentSectionProps) {
   const post = e
-    .shape(e.Post, (post) => ({
+    .fragment("CommentSectionPostFragment", e.Post, (post) => ({
       comments: (comment) => ({
         id: true,
 

@@ -25,9 +25,6 @@ for (const file of files) {
     .forEach((declaration) => {
       const initializer = declaration.getInitializer();
 
-      console.log("----------------");
-      console.log(initializer?.getText());
-
       if (initializer?.isKind(SyntaxKind.CallExpression)) {
         const expression = initializer.getExpressionIfKind(
           SyntaxKind.PropertyAccessExpression,
@@ -46,19 +43,23 @@ for (const file of files) {
 
           const identifiers =
             pae?.getChildrenOfKind(SyntaxKind.Identifier) ?? [];
-          console.log(identifiers.map((it) => it.getText()));
           const [first, second] = identifiers;
 
           if (
             first?.getText() === "e" &&
-            second?.getText() === "shape" &&
+            second?.getText() === "fragment" &&
             callExpression
           ) {
-            const argument = callExpression.getArguments()[0];
-            const typeName = argument.getText().split("e.")[1];
+            const nameArgument = callExpression.getArguments()[0];
+            const fragmentName = nameArgument
+              .getText()
+              .slice(1, nameArgument.getText().length - 1);
+
+            const typeArgument = callExpression.getArguments()[1];
+            const typeName = typeArgument.getText().split("e.")[1];
 
             fragments.push({
-              name: `${file.getBaseNameWithoutExtension()}${typeName}Fragment`,
+              name: fragmentName,
               text: callExpression.getText(),
               type: typeName,
             });
@@ -67,8 +68,6 @@ for (const file of files) {
       }
     });
 }
-
-console.log(fragments);
 
 manifest.addImportDeclaration({
   namedImports: [
@@ -93,6 +92,20 @@ manifest.addImportDeclaration({
 });
 
 for (const fragment of fragments) {
+  manifest.addTypeAlias({
+    isExported: true,
+    name: `${fragment.name}Ref`,
+    type: (writer) => {
+      writer.block(() => {
+        writer.write("$fragmentSpreads:");
+
+        writer.block(() => {
+          writer.write(`${fragment.name}: true`);
+        });
+      });
+    },
+  });
+
   manifest.addVariableStatement({
     isExported: true,
     declarationKind: VariableDeclarationKind.Const,
@@ -111,13 +124,32 @@ for (const fragment of fragments) {
             }>
           `);
 
-          writer.write(") => ");
-          writer.write("({");
-          writer.write(fragment.name);
-          writer.write(": ");
-          writer.write("e.select(shape, ");
-          writer.write(fragment.text);
-          writer.write(")})");
+          writer.write(") =>");
+
+          writer.block(() => {
+            writer.write(`const FragmentMaskType = e.shape(e.${fragment.type}, () => ({
+                '$fragmentSpreads': e.select(shape, ()=> ({
+                  '${fragment.name}': e.select(e.bool(true)),
+                }))
+              }))`);
+
+            writer.writeLine(
+              "type AsType = ReturnType<typeof FragmentMaskType>",
+            );
+
+            writer.blankLine();
+
+            writer.write("return ");
+
+            writer.inlineBlock(() => {
+              writer.write(fragment.name);
+              writer.write(": e.select(shape, ");
+              writer.write(fragment.text);
+              writer.write(".shape())");
+            });
+
+            writer.write("as any as AsType");
+          });
         },
       },
     ],

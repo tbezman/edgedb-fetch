@@ -2,11 +2,11 @@
 
 import { useEffect, useRef } from "react";
 import e from "../../dbschema/edgeql-js";
-import { ReplyCommentCardFragmentRef } from "../../dist/manifest";
+import { ReplyCommentCardCommentFragmentRef } from "../../dist/manifest";
 
 type ReplyCommentCardProps = {
   highlightedCommentId?: string;
-  commentRef: any;
+  commentRef: ReplyCommentCardCommentFragmentRef;
 };
 
 export function ReplyCommentCard({
@@ -14,7 +14,7 @@ export function ReplyCommentCard({
   highlightedCommentId,
 }: ReplyCommentCardProps) {
   const comment = e
-    .shape(e.Comment, (comment) => ({
+    .fragment("ReplyCommentCardCommentFragment", e.Comment, (comment) => ({
       id: true,
       author: {
         name: true,

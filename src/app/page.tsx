@@ -1,8 +1,8 @@
 import e from "../../dbschema/edgeql-js";
-import { FallbackCard, PostCard } from "@/ components/PostCard";
 import { PropsWithChildren, Suspense } from "react";
 import { client } from "@/client";
 import { PostCardPostFragment } from "../../dist/manifest";
+import { FallbackCard, PostCard } from "@/components/PostCard";
 
 export default async function Home() {
   const posts = await e
@@ -12,7 +12,6 @@ export default async function Home() {
       ...PostCardPostFragment(post),
     }))
     .run(client);
-
 
   return (
     <div className="py-4 px-4">
