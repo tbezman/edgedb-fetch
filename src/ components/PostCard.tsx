@@ -2,17 +2,19 @@ import e from "../../dbschema/edgeql-js";
 import Link from "next/link";
 import { PostCardFragmentRef } from "../../dist/manifest";
 
-export const PostCardFragment = e.shape(e.Post, () => ({
-  id: true,
-  title: true,
-  content: true,
-}));
-
 type PostCardProps = {
-  post: PostCardFragmentRef;
+  postRef: PostCardFragmentRef;
 };
 
-export function PostCard({ post }: PostCardProps) {
+export function PostCard({ postRef }: PostCardProps) {
+  const post = e
+    .fragment(e.Post, () => ({
+      id: true,
+      title: true,
+      content: true,
+    }))
+    .pull(postRef);
+
   return (
     <article className="flex flex-col max-w-2xl mx-auto">
       <Link

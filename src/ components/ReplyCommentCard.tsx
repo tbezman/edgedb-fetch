@@ -4,24 +4,24 @@ import { useEffect, useRef } from "react";
 import e from "../../dbschema/edgeql-js";
 import { ReplyCommentCardFragmentRef } from "../../dist/manifest";
 
-export const ReplyCommentCardFragment = e.shape(e.Comment, (comment) => ({
-  id: true,
-  author: {
-    name: true,
-  },
-  text: true,
-}));
-
 type ReplyCommentCardProps = {
   highlightedCommentId?: string;
-  comment: ReplyCommentCardFragmentRef;
+  commentRef: any;
 };
 
 export function ReplyCommentCard({
-  comment,
+  commentRef,
   highlightedCommentId,
 }: ReplyCommentCardProps) {
-  console.log("Comment", comment);
+  const comment = e
+    .shape(e.Comment, (comment) => ({
+      id: true,
+      author: {
+        name: true,
+      },
+      text: true,
+    }))
+    .pull(commentRef);
 
   const elementRef = useRef<HTMLDivElement | null>(null);
 

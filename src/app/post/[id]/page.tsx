@@ -5,7 +5,12 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { client } from "@/client";
 import { RefType } from "@/types";
-import { CommentSectionFragmentRef, spread } from "../../../../dist/manifest";
+import {
+  CommentCardCommentFragment,
+  CommentSectionFragmentRef,
+  pagePostFragment,
+  spread,
+} from "../../../../dist/manifest";
 
 type PageProps = {
   searchParams: { highlightedComment?: string };
@@ -19,7 +24,7 @@ export default async function PostPage({ params, searchParams }: PageProps) {
         title: true,
         content: true,
 
-        ...spread("CommentSectionFragment", post),
+        ...pagePostFragment(post),
 
         filter: e.op(post.id, "=", e.uuid(params.id)),
       })),
@@ -51,10 +56,7 @@ export default async function PostPage({ params, searchParams }: PageProps) {
             <h2 className="text-xl font-bold">Comments</h2>
 
             <ul className="space-y-8">
-              <CommentSection
-                searchParams={searchParams}
-                post={post.CommentSectionFragment}
-              />
+              <CommentSection searchParams={searchParams} postRef={post} />
             </ul>
           </Suspense>
         </div>
@@ -63,25 +65,29 @@ export default async function PostPage({ params, searchParams }: PageProps) {
   );
 }
 
-const CommentSectionFragment = e.shape(e.Post, (post) => ({
-  comments: (comment) => ({
-    id: true,
-
-    ...spread("CommentCardFragment", comment),
-  }),
-}));
-
 type CommentSectionProps = {
-  post: CommentSectionFragmentRef;
+  postRef: any;
   searchParams: { highlightedComment?: string };
 };
 
-function CommentSection({ post, searchParams }: CommentSectionProps) {
+function CommentSection({ postRef, searchParams }: CommentSectionProps) {
+  const post = e
+    .shape(e.Post, (post) => ({
+      comments: (comment) => ({
+        id: true,
+
+        ...CommentCardCommentFragment(comment),
+      }),
+    }))
+    .pull(postRef);
+
+  console.log(post, postRef);
+
   return post?.comments?.map((comment) => {
     return (
       <li key={comment.id}>
         <CommentCard
-          comment={comment.CommentCardFragment}
+          commentRef={comment}
           highlightedCommentId={searchParams.highlightedComment}
         />
       </li>

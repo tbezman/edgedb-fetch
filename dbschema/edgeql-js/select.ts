@@ -37,6 +37,7 @@ import type {
   BaseType,
   ExclusiveTuple,
   orLiteralValue,
+  setToTsType,
 } from "./typesystem";
 
 import {
@@ -102,17 +103,17 @@ export type exclusivesToFilterSingle<E extends ExclusiveTuple> =
   ExclusiveTuple extends E
     ? never
     : E extends []
-    ? never
-    : {
-        [j in keyof E]: {
-          [k in keyof E[j]]: E[j][k] extends ObjectTypeSet
-            ? TypeSet<
-                anonymizeObject<E[j][k]["__element__"]>,
-                E[j][k]["__cardinality__"]
-              >
-            : orLiteralValue<E[j][k]>;
-        };
-      }[number];
+      ? never
+      : {
+          [j in keyof E]: {
+            [k in keyof E[j]]: E[j][k] extends ObjectTypeSet
+              ? TypeSet<
+                  anonymizeObject<E[j][k]["__element__"]>,
+                  E[j][k]["__cardinality__"]
+                >
+              : orLiteralValue<E[j][k]>;
+          };
+        }[number];
 export type SelectModifiers<T extends ObjectType = ObjectType> = {
   // export type SelectModifiers = {
   filter?: SelectFilterExpression;
@@ -224,8 +225,8 @@ export interface SelectModifierMethods<Root extends TypeSet> {
       | ((
           scope: Root extends ObjectTypeSet
             ? $scopify<Root["__element__"]>
-            : stripSet<Root>
-        ) => Filter)
+            : stripSet<Root>,
+        ) => Filter),
   ): this;
   order_by(
     order_by:
@@ -233,8 +234,8 @@ export interface SelectModifierMethods<Root extends TypeSet> {
       | ((
           scope: Root extends ObjectTypeSet
             ? $scopify<Root["__element__"]>
-            : stripSet<Root>
-        ) => OrderByExpression)
+            : stripSet<Root>,
+        ) => OrderByExpression),
   ): this;
   offset(
     offset:
@@ -243,8 +244,8 @@ export interface SelectModifierMethods<Root extends TypeSet> {
       | ((
           scope: Root extends ObjectTypeSet
             ? $scopify<Root["__element__"]>
-            : stripSet<Root>
-        ) => OffsetExpression | number)
+            : stripSet<Root>,
+        ) => OffsetExpression | number),
   ): this;
   // $expr_Select<{
   //   __element__: Root["__element__"];
@@ -260,8 +261,8 @@ export interface SelectModifierMethods<Root extends TypeSet> {
       | ((
           scope: Root extends ObjectTypeSet
             ? $scopify<Root["__element__"]>
-            : stripSet<Root>
-        ) => LimitExpression | number)
+            : stripSet<Root>,
+        ) => LimitExpression | number),
   ): this;
   // $expr_Select<{
   //   __element__: Root["__element__"];
@@ -355,12 +356,12 @@ export interface SelectModifierMethods<Root extends TypeSet> {
 
 export type InferOffsetLimitCardinality<
   Card extends Cardinality,
-  Modifers extends UnknownSelectModifiers
+  Modifers extends UnknownSelectModifiers,
 > = Modifers["limit"] extends number | LimitExpression
   ? cardutil.overrideLowerBound<Card, "Zero">
   : Modifers["offset"] extends number | OffsetExpression
-  ? cardutil.overrideLowerBound<Card, "Zero">
-  : Card;
+    ? cardutil.overrideLowerBound<Card, "Zero">
+    : Card;
 
 // export type ComputeSelectCardinality<
 //   Expr extends ObjectTypeExpression,
@@ -371,7 +372,7 @@ export type InferOffsetLimitCardinality<
 // >;
 export type ComputeSelectCardinality<
   Expr extends ObjectTypeExpression,
-  Modifiers extends UnknownSelectModifiers
+  Modifiers extends UnknownSelectModifiers,
 > = InferOffsetLimitCardinality<
   undefined extends Modifiers["filter_single"]
     ? Expr["__cardinality__"]
@@ -381,10 +382,10 @@ export type ComputeSelectCardinality<
 
 export function is<
   Expr extends ObjectTypeExpression,
-  Shape extends objectTypeToSelectShape<Expr["__element__"]>
+  Shape extends objectTypeToSelectShape<Expr["__element__"]>,
 >(
   expr: Expr,
-  shape: Shape
+  shape: Shape,
 ): {
   [k in Exclude<
     keyof Shape,
@@ -467,7 +468,7 @@ export function is<
 
 export function $handleModifiers(
   modifiers: SelectModifiers,
-  params: { root: TypeSet; scope: TypeSet }
+  params: { root: TypeSet; scope: TypeSet },
 ): {
   modifiers: NormalisedSelectModifiers;
   cardinality: Cardinality;
@@ -504,7 +505,7 @@ export function $handleModifiers(
               (root.__element__ as any as ObjectType)["__pointers__"][key]![
                 "target"
               ],
-              fs[key]
+              fs[key],
             );
         return $expressionify({
           __element__: {
@@ -544,7 +545,7 @@ export function $handleModifiers(
     mods.order_by = orderExprs.map((expr) =>
       typeof (expr as any).__element__ === "undefined"
         ? expr
-        : { expression: expr }
+        : { expression: expr },
     ) as any;
   }
   if (modifiers.offset) {
@@ -592,10 +593,10 @@ export type $expr_Delete<Root extends ObjectTypeSet = ObjectTypeSet> =
 
 function deleteExpr<
   Expr extends ObjectTypeExpression,
-  Modifiers extends SelectModifiers<Expr["__element__"]>
+  Modifiers extends SelectModifiers<Expr["__element__"]>,
 >(
   expr: Expr,
-  modifiers?: (scope: $scopify<Expr["__element__"]>) => Readonly<Modifiers>
+  modifiers?: (scope: $scopify<Expr["__element__"]>) => Readonly<Modifiers>,
 ): $expr_Delete<{
   __element__: ObjectType<
     Expr["__element__"]["__name__"],
@@ -757,7 +758,7 @@ export type linkDescToSelectElement<L extends LinkDesc> =
   | TypeSet<anonymizeObject<L["target"]>, cardutil.assignable<L["cardinality"]>>
   | linkDescToShape<L>
   | ((
-      scope: $scopify<L["target"]> & linkDescToLinkProps<L>
+      scope: $scopify<L["target"]> & linkDescToLinkProps<L>,
     ) => linkDescToShape<L>);
 
 // object types -> pointers
@@ -778,8 +779,8 @@ export type objectTypeToSelectShape<T extends ObjectType = ObjectType> =
             >
           | $expr_PolyShapeElement
       : T["__pointers__"][k] extends LinkDesc
-      ? linkDescToSelectElement<T["__pointers__"][k]>
-      : any;
+        ? linkDescToSelectElement<T["__pointers__"][k]>
+        : any;
   }> & { [k: string]: unknown };
 
 // incorporate __shape__ (computeds) on selection shapes
@@ -816,16 +817,16 @@ export type objectTypeToSelectShape<T extends ObjectType = ObjectType> =
 export type normaliseElement<El> = El extends boolean
   ? El
   : El extends TypeSet
-  ? stripSet<El>
-  : El extends (...scope: any[]) => any
-  ? normaliseShape<ReturnType<El>>
-  : El extends object
-  ? normaliseShape<stripSet<El>>
-  : stripSet<El>;
+    ? stripSet<El>
+    : El extends (...scope: any[]) => any
+      ? normaliseShape<ReturnType<El>>
+      : El extends object
+        ? normaliseShape<stripSet<El>>
+        : stripSet<El>;
 
 export type normaliseShape<
   Shape extends object,
-  Strip = SelectModifierNames
+  Strip = SelectModifierNames,
 > = {
   [k in Exclude<keyof Shape, Strip>]: normaliseElement<Shape[k]>;
 };
@@ -833,7 +834,7 @@ export type normaliseShape<
 const $FreeObject = makeType(
   spec,
   [...spec.values()].find((s) => s.name === "std::FreeObject")!.id,
-  literal
+  literal,
 );
 const FreeObject: $expr_PathNode = {
   __kind__: ExpressionKind.PathNode,
@@ -851,7 +852,7 @@ export const $existingScopes = new Set<
 function $shape<
   Expr extends ObjectTypeExpression,
   Shape extends objectTypeToSelectShape<Expr["__element__"]> &
-    SelectModifiers<Expr["__element__"]> // <Expr["__element__"]>
+    SelectModifiers<Expr["__element__"]>, // <Expr["__element__"]>
 >(
   expr: Expr,
   _shape: (
@@ -860,16 +861,25 @@ function $shape<
         [k in keyof Expr]: k extends "__cardinality__"
           ? Cardinality.One
           : Expr[k];
-      }>
-  ) => Readonly<Shape>
-): (scope: unknown) => Readonly<Shape>;
+      }>,
+  ) => Readonly<Shape>,
+): ((scope: unknown) => Readonly<Shape>) & {
+  pull: (arg: any) => setToTsType<{
+    __element__: ObjectType<
+      `${Expr["__element__"]["__name__"]}`, // _shape
+      Expr["__element__"]["__pointers__"],
+      Omit<normaliseShape<Readonly<Shape>>, SelectModifierNames>
+    >;
+    __cardinality__: typeof Cardinality.One;
+  }>;
+};
 function $shape(_a: unknown, b: (...args: any) => any) {
   return b;
 }
 export { $shape as shape };
 
 export function select<Expr extends ObjectTypeExpression>(
-  expr: Expr
+  expr: Expr,
 ): $expr_Select<{
   __element__: ObjectType<
     `${Expr["__element__"]["__name__"]}`, // _shape
@@ -879,13 +889,13 @@ export function select<Expr extends ObjectTypeExpression>(
   __cardinality__: Expr["__cardinality__"];
 }>;
 export function select<Expr extends TypeSet>(
-  expr: Expr
+  expr: Expr,
 ): $expr_Select<stripSet<Expr>>;
 export function select<
   Expr extends ObjectTypeExpression,
   Shape extends objectTypeToSelectShape<Expr["__element__"]> &
     SelectModifiers<Expr["__element__"]>,
-  Modifiers extends UnknownSelectModifiers = Pick<Shape, SelectModifierNames>
+  Modifiers extends UnknownSelectModifiers = Pick<Shape, SelectModifierNames>,
 >(
   expr: Expr,
   shape: (
@@ -894,8 +904,8 @@ export function select<
         [k in keyof Expr]: k extends "__cardinality__"
           ? Cardinality.One
           : Expr[k];
-      }>
-  ) => Readonly<Shape>
+      }>,
+  ) => Readonly<Shape>,
 ): $expr_Select<{
   __element__: ObjectType<
     `${Expr["__element__"]["__name__"]}`, // _shape
@@ -917,10 +927,10 @@ https://github.com/microsoft/TypeScript/issues/47081
 
 export function select<
   Expr extends PrimitiveTypeSet,
-  Modifiers extends SelectModifiers
+  Modifiers extends SelectModifiers,
 >(
   expr: Expr,
-  modifiers: (expr: Expr) => Readonly<Modifiers>
+  modifiers: (expr: Expr) => Readonly<Modifiers>,
 ): $expr_Select<{
   __element__: Expr["__element__"];
   __cardinality__: InferOffsetLimitCardinality<
@@ -929,7 +939,7 @@ export function select<
   >;
 }>;
 export function select<Shape extends { [key: string]: TypeSet }>(
-  shape: Shape
+  shape: Shape,
 ): $expr_Select<{
   __element__: ObjectType<
     `std::FreeObject`,
@@ -958,7 +968,7 @@ export function select<Shape extends { [key: string]: TypeSet }>(
   __cardinality__: Cardinality.One;
 }>;
 export function select<Expr extends scalarLiterals>(
-  expr: Expr
+  expr: Expr,
 ): $expr_Select<{
   __element__: literalToScalarType<Expr>;
   __cardinality__: Cardinality.One;
@@ -987,7 +997,7 @@ export function select(...args: any[]) {
         __cardinality__: literalExpr.__cardinality__,
         __expr__: literalExpr,
         __modifiers__: {},
-      })
+      }),
     ) as any;
   }
 
@@ -1040,7 +1050,7 @@ export function select(...args: any[]) {
           __cardinality__: objectExpr.__cardinality__,
           __expr__: objectExpr,
           __modifiers__: {},
-        })
+        }),
       ) as any;
     } else {
       return $expressionify(
@@ -1050,7 +1060,7 @@ export function select(...args: any[]) {
           __cardinality__: expr.__cardinality__,
           __expr__: expr,
           __modifiers__: {},
-        })
+        }),
       ) as any;
     }
   }
@@ -1091,7 +1101,7 @@ export function select(...args: any[]) {
 
 function resolveShape(
   shapeGetter: ((scope: any) => any) | any,
-  expr: TypeSet
+  expr: TypeSet,
 ): { modifiers: any; shape: any; scope: TypeSet } {
   const modifiers: any = {};
   const shape: any = {};
@@ -1122,7 +1132,7 @@ function resolveShape(
       if (expr.__element__.__kind__ !== TypeKind.object) {
         throw new Error(
           `Invalid select shape key '${key}' on scalar expression, ` +
-            `only modifiers are allowed (filter, order_by, offset and limit)`
+            `only modifiers are allowed (filter, order_by, offset and limit)`,
         );
       }
       shape[key] = resolveShapeElement(key, value, scope);
@@ -1134,7 +1144,7 @@ function resolveShape(
 export function resolveShapeElement(
   key: any,
   value: any,
-  scope: ObjectTypeExpression
+  scope: ObjectTypeExpression,
 ): any {
   // if value is a nested closure
   // or a nested shape object
@@ -1159,7 +1169,7 @@ export function resolveShapeElement(
     const childExpr = (scope as any)[key];
     if (!childExpr) {
       throw new Error(
-        `Invalid shape element "${key}" for type ${scope.__element__.__name__}`
+        `Invalid shape element "${key}" for type ${scope.__element__.__name__}`,
       );
     }
     const {
@@ -1200,7 +1210,7 @@ export function resolveShapeElement(
       __shapeElement__: resolveShapeElement(
         key,
         polyElement.__shapeElement__,
-        polyScope
+        polyScope,
       ),
     };
   } else if (typeof value === "boolean" && key.startsWith("@")) {
@@ -1211,7 +1221,7 @@ export function resolveShapeElement(
           ? `link property '${key}' does not exist on link ${
               (scope as any).__parent__.linkName
             }`
-          : `cannot select link property '${key}' on an object (${scope.__element__.__name__})`
+          : `cannot select link property '${key}' on an object (${scope.__element__.__name__})`,
       );
     }
     return value ? linkProp : false;

@@ -2,33 +2,35 @@ import e from "../../dbschema/edgeql-js";
 import { formatDistanceToNow } from "date-fns";
 import { ReplyButton } from "./ReplyButton";
 import { ReplyCommentCard } from "./ReplyCommentCard";
-import { CommentCardFragmentRef, spread } from "../../dist/manifest";
-
-export const CommentCardFragment = e.shape(e.Comment, (comment) => ({
-  id: true,
-  text: true,
-  created_at: true,
-
-  author: {
-    name: true,
-  },
-
-  replies: (reply) => ({
-    id: true,
-
-    ...spread("ReplyCommentCardFragment", reply),
-  }),
-}));
+import { ReplyCommentCardCommentFragment } from "../../dist/manifest";
 
 type CommentCardProps = {
-  comment: CommentCardFragmentRef;
+  commentRef: any;
   highlightedCommentId?: string;
 };
 
 export function CommentCard({
-  comment,
+  commentRef,
   highlightedCommentId,
 }: CommentCardProps) {
+  const comment = e
+    .shape(e.Comment, (comment) => ({
+      id: true,
+      text: true,
+      created_at: true,
+
+      author: {
+        name: true,
+      },
+
+      replies: (reply) => ({
+        id: true,
+
+        ...ReplyCommentCardCommentFragment(reply),
+      }),
+    }))
+    .pull(commentRef);
+
   return (
     <div>
       <div className="flex items-baseline justify-between">
@@ -54,7 +56,7 @@ export function CommentCard({
               return (
                 <li key={reply.id}>
                   <ReplyCommentCard
-                    comment={reply.ReplyCommentCardFragment}
+                    commentRef={reply}
                     highlightedCommentId={highlightedCommentId}
                   />
                 </li>

@@ -20,10 +20,11 @@
     ],
     "paths": {
       "@/*": ["./src/*"]
-    }
+    },
   },
   "include": [
     "next-env.d.ts",
+    "reset.d.ts",
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",

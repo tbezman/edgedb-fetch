@@ -1,4 +1,6 @@
-import { Project, ScriptTarget, VariableDeclarationKind } from "ts-morph";
+import { Project, SyntaxKind, VariableDeclarationKind } from "ts-morph";
+
+debugger;
 
 const project = new Project({
   tsConfigFilePath: "./tsconfig.json",
@@ -15,6 +17,58 @@ manifest.addImportDeclaration({
   namedImports: [{ isTypeOnly: true, name: "Cardinality" }],
   moduleSpecifier: "../dbschema/edgeql-js",
 });
+
+const fragments: Array<{ name: string; type: string; text: string }> = [];
+for (const file of files) {
+  file
+    .getDescendantsOfKind(SyntaxKind.VariableDeclaration)
+    .forEach((declaration) => {
+      const initializer = declaration.getInitializer();
+
+      console.log("----------------");
+      console.log(initializer?.getText());
+
+      if (initializer?.isKind(SyntaxKind.CallExpression)) {
+        const expression = initializer.getExpressionIfKind(
+          SyntaxKind.PropertyAccessExpression,
+        );
+
+        if (expression) {
+          const callExpression = expression.getChildAtIndexIfKind(
+            0,
+            SyntaxKind.CallExpression,
+          );
+
+          const pae = callExpression?.getChildAtIndexIfKind(
+            0,
+            SyntaxKind.PropertyAccessExpression,
+          );
+
+          const identifiers =
+            pae?.getChildrenOfKind(SyntaxKind.Identifier) ?? [];
+          console.log(identifiers.map((it) => it.getText()));
+          const [first, second] = identifiers;
+
+          if (
+            first?.getText() === "e" &&
+            second?.getText() === "shape" &&
+            callExpression
+          ) {
+            const argument = callExpression.getArguments()[0];
+            const typeName = argument.getText().split("e.")[1];
+
+            fragments.push({
+              name: `${file.getBaseNameWithoutExtension()}${typeName}Fragment`,
+              text: callExpression.getText(),
+              type: typeName,
+            });
+          }
+        }
+      }
+    });
+}
+
+console.log(fragments);
 
 manifest.addImportDeclaration({
   namedImports: [
@@ -38,101 +92,37 @@ manifest.addImportDeclaration({
   namedImports: ["$linkPropify"],
 });
 
-manifest.addImportDeclaration({
-  namedImports: ["RefType"],
-  moduleSpecifier: "../src/types",
-});
+for (const fragment of fragments) {
+  manifest.addVariableStatement({
+    isExported: true,
+    declarationKind: VariableDeclarationKind.Const,
+    declarations: [
+      {
+        name: fragment.name,
+        initializer: (writer) => {
+          writer.write("(shape: ");
 
-const fragments: Array<{ name: string }> = [];
-for (const file of files) {
-  const declarations = file.getVariableDeclarations();
+          writer.write(`
+           $scopify<typeof e.${fragment.type}["__element__"]> &
+            $linkPropify<{
+              [k in keyof typeof e.${fragment.type}]: k extends "__cardinality__"
+                ? typeof Cardinality.One
+                : typeof e.${fragment.type}[k];
+            }>
+          `);
 
-  for (const declaration of declarations) {
-    if (declaration.getName().endsWith("Fragment")) {
-      const type = declaration
-        .getText()
-        .split(",")[0]
-        .split("(")[1]
-        .split(".")[1];
-
-      fragments.push({ name: declaration.getName() });
-
-      manifest.addVariableStatement({
-        declarationKind: VariableDeclarationKind.Const,
-        declarations: [
-          {
-            name: declaration.getName(),
-            initializer: declaration.getInitializer()?.getText(),
-          },
-        ],
-      });
-
-      manifest.addTypeAlias({
-        isExported: true,
-        name: declaration.getName() + "Ref",
-        type: `RefType<typeof e.${type}, typeof ${declaration.getName()}>`,
-      });
-    }
-  }
+          writer.write(") => ");
+          writer.write("({");
+          writer.write(fragment.name);
+          writer.write(": ");
+          writer.write("e.select(shape, ");
+          writer.write(fragment.text);
+          writer.write(")})");
+        },
+      },
+    ],
+  });
 }
 
-manifest.addVariableStatement({
-  isExported: true,
-  declarationKind: VariableDeclarationKind.Const,
-  declarations: [
-    {
-      name: "Fragments",
-      initializer: (writer) => {
-        writer.write("{");
-
-        for (const fragment of fragments) {
-          writer.write(fragment.name + ",");
-        }
-
-        writer.write("} as const");
-      },
-    },
-  ],
-});
-
-manifest.addFunction({
-  name: "spread",
-  isExported: true,
-  overloads: fragments.map((fragment) => {
-    return {
-      typeParameters: [{ name: "Expr", constraint: "ObjectTypeExpression" }],
-      parameters: [
-        { name: "fragmentName", type: `'${fragment.name}'` },
-        {
-          name: "expr",
-          type: "Expr",
-        },
-      ],
-      returnType: (writer) => {
-        writer.writeLine(`{
-        '${fragment.name}': $expr_Select<{
-          __element__: ObjectType<
-            \`\${Expr["__element__"]["__name__"]}\`, // _shape
-            Expr["__element__"]["__pointers__"],
-            Omit<normaliseShape<ReturnType<typeof ${fragment.name}>>, SelectModifierNames>
-          >;
-          __cardinality__: typeof Cardinality.One;
-        }>;
-      }`);
-      },
-    };
-  }),
-  parameters: [
-    { name: "fragmentName", type: "any" },
-    { name: "shape", type: "any" },
-  ],
-  statements: (writer) => {
-    writer.writeLine("const fragment = Fragments[fragmentName] as any;");
-
-    writer.writeLine(
-      "return { [fragmentName]: e.select(shape, arg => fragment(arg)) }",
-    );
-  },
-});
-
+manifest.formatText();
 manifest.saveSync();
