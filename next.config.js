@@ -4,6 +4,9 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   eslint: { ignoreDuringBuilds: true },
+  experimental: {
+    ppr: true,
+  },
 };
 
 module.exports = nextConfig;
