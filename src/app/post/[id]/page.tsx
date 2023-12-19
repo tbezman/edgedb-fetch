@@ -1,9 +1,9 @@
-import e from "../../../../dbschema/edgeql-js";
+import { client } from "@/client";
 import { CommentCard } from "@/components/CommentCard";
 import Link from "next/link";
-import { Suspense } from "react";
 import { notFound } from "next/navigation";
-import { client } from "@/client";
+import { Suspense } from "react";
+import e from "../../../../dbschema/edgeql-js";
 import {
   CommentCardCommentFragment,
   CommentSectionPostFragment,
