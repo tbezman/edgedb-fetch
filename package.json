@@ -9,7 +9,7 @@
     "compile": "bun antlr && bun ./compiler/compiler.ts",
     "lint": "next lint",
     "antlr": "rm -rf antlr/* && java -jar ./antlr.jar -Dlanguage=TypeScript -o antlr -visitor ./MyGrammar.g4",
-    "generate": "bunx @edgedb/generate edgeql-js",
+    "generate": "node node_modules/@edgedb/generate/dist/cli.js edgeql-js",
     "migrate": "edgedb database wipe --non-interactive && edgedb migrate && edgedb migration create --non-interactive --allow-unsafe && edgedb migrate; bun generate"
   },
   "dependencies": {
@@ -19,6 +19,7 @@
     "antlr4": "^4.13.1-patch-1",
     "chalk": "^5.3.0",
     "date-fns": "^2.30.0",
+    "edgedb": "^1.4.1",
     "fast-glob": "^3.3.2",
     "next": "^14.0.4",
     "next-usequerystate": "^1.13.0",
@@ -27,7 +28,7 @@
     "ts-morph": "^20.0.0"
   },
   "devDependencies": {
-    "@edgedb/generate": "^0.3.4",
+    "@edgedb/generate": "link:/Users/terence/Code/edgedb-js/packages/generate",
     "@types/glob-watcher": "^5.0.5",
     "@types/node": "^20",
     "@types/react": "^18",
