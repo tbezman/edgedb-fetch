@@ -17,16 +17,14 @@ type PageProps = {
 
 export default async function PostPage({ params, searchParams }: PageProps) {
   const post = await e
-    .assert_single(
-      e.select(e.Post, (post) => ({
-        title: true,
-        content: true,
+    .select(e.Post, (post) => ({
+      title: true,
+      content: true,
 
-        ...CommentSectionPostFragment(post),
+      ...CommentSectionPostFragment(post),
 
-        filter: e.op(post.id, "=", e.uuid(params.id)),
-      })),
-    )
+      filter_single: e.op(post.id, "=", e.uuid(params.id)),
+    }))
     .run(client);
 
   if (!post) {
