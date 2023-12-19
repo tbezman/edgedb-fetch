@@ -1,0 +1,18 @@
+[package]
+name = "r-compiler"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+serde_json = "1.0.108"
+swc = {version = "0.270.2" }
+swc_core = "0.87.2"
+swc_common = "0.33.12"
+swc_ecmascript = {version = "0.237.2", features = ["parser", "visit"] }
+notify = "6.1.1"
+anyhow = "1.0.75"
+glob = "0.3.1"
+swc_ecma_codegen = "0.146.45"
+swc_ecma_transforms = "0.227.2"

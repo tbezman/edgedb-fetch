@@ -1,8 +1,8 @@
-import e from "../../dbschema/edgeql-js";
-import { PropsWithChildren, Suspense } from "react";
 import { client } from "@/client";
-import { PostCardPostFragment } from "../../dist/manifest";
 import { FallbackCard, PostCard } from "@/components/PostCard";
+import { PropsWithChildren, Suspense } from "react";
+import e from "../../dbschema/edgeql-js";
+import { PostCardPostFragment } from "../../dist/manifest";
 
 export default async function Home() {
   const posts = await e
