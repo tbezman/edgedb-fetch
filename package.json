@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "yarn compile && next build",
+    "build": "bun add @edgedb/generate && bun compile && next build",
     "start": "next start",
     "compile": "bun antlr && bun ./compiler/compiler.ts",
     "lint": "next lint",
