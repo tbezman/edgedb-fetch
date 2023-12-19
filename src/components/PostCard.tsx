@@ -34,7 +34,8 @@ export function PostCard({ postRef }: PostCardProps) {
             router.push(`/post/${post.id}`);
           });
         }}
-        className="text-blue-600 underline visited:text-gray-700 flex items-baseline gap-x-2 transition-transform duration-300 active:scale-[.99] origin-left"
+        draggable={false}
+        className="text-blue-600 underline visited:text-gray-700 flex items-baseline gap-x-2 transition-transform duration-300 active:scale-[.99] origin-left "
       >
         <h3 className="font-medium">{post.title}</h3>
 
