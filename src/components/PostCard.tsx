@@ -1,5 +1,5 @@
-import e from "../../dbschema/edgeql-js";
 import Link from "next/link";
+import e from "../../dbschema/edgeql-js";
 import { PostCardPostFragmentRef } from "../../dist/manifest";
 
 type PostCardProps = {
