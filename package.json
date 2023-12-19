@@ -6,9 +6,8 @@
     "dev": "next dev",
     "build": "bun add @edgedb/generate && bun compile && next build",
     "start": "next start",
-    "compile": "bun antlr && bun ./compiler/compiler.ts",
+    "compile": "bun ./compiler/compiler.ts",
     "lint": "next lint",
-    "antlr": "rm -rf antlr/* && java -jar ./antlr.jar -Dlanguage=TypeScript -o antlr -visitor ./MyGrammar.g4",
     "generate": "node node_modules/@edgedb/generate/dist/cli.js edgeql-js",
     "migrate": "edgedb database wipe --non-interactive && edgedb migrate && edgedb migration create --non-interactive --allow-unsafe && edgedb migrate; bun generate"
   },
