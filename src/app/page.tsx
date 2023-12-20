@@ -5,6 +5,7 @@ import e from "../../dbschema/edgeql-js";
 import { PostCardPostFragment } from "../../dist/manifest";
 
 export default async function Home() {
+  const before = Date.now();
   const posts = await e
     .select(e.Post, (post) => ({
       id: true,
@@ -12,6 +13,10 @@ export default async function Home() {
       ...PostCardPostFragment(post),
     }))
     .run(client);
+
+  const after = Date.now();
+
+  console.log(`Time took - ${after - before}ms`);
 
   return (
     <div className="py-4 px-4">
