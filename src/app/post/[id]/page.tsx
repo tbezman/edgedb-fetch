@@ -6,7 +6,6 @@ import { Suspense } from "react";
 import e from "../../../../dbschema/edgeql-js";
 import { CommentSectionPostFragment } from "../../../../dist/manifest";
 import { CommentSection } from "@/components/CommentSection";
-import { generateReaderSchema } from "@/generateReaderSchema";
 
 type PageProps = {
   searchParams: { highlightedComment?: string };
@@ -14,17 +13,16 @@ type PageProps = {
 };
 
 export default async function PostPage({ params, searchParams }: PageProps) {
-  const query = e.select(e.Post, (post) => ({
-    title: true,
-    content: true,
+  const post = await e
+    .select(e.Post, (post) => ({
+      title: true,
+      content: true,
 
-    ...CommentSectionPostFragment(post),
+      ...CommentSectionPostFragment(post),
 
-    filter: e.op(post.id, "=", e.uuid(params.id)),
-  }));
-
-  await generateReaderSchema(query.toEdgeQL());
-  const post = (await query.run(client))[0];
+      filter_single: e.op(post.id, "=", e.uuid(params.id)),
+    }))
+    .run(client);
 
   if (!post) {
     return notFound();
