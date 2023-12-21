@@ -21,50 +21,34 @@ manifest.addImportDeclaration({
 const fragments: Array<{ name: string; type: string; text: string }> = [];
 for (const file of files) {
   file
-    .getDescendantsOfKind(SyntaxKind.VariableDeclaration)
-    .forEach((declaration) => {
-      const initializer = declaration.getInitializer();
+    .getDescendantsOfKind(SyntaxKind.CallExpression)
+    .forEach((callExpression) => {
+      const pae = callExpression?.getChildAtIndexIfKind(
+        0,
+        SyntaxKind.PropertyAccessExpression,
+      );
 
-      if (initializer?.isKind(SyntaxKind.CallExpression)) {
-        const expression = initializer.getExpressionIfKind(
-          SyntaxKind.PropertyAccessExpression,
-        );
+      const identifiers = pae?.getChildrenOfKind(SyntaxKind.Identifier) ?? [];
+      const [first, second] = identifiers;
 
-        if (expression) {
-          const callExpression = expression.getChildAtIndexIfKind(
-            0,
-            SyntaxKind.CallExpression,
-          );
+      if (
+        first?.getText() === "e" &&
+        second?.getText() === "fragment" &&
+        callExpression
+      ) {
+        const nameArgument = callExpression.getArguments()[0];
+        const fragmentName = nameArgument
+          .getText()
+          .slice(1, nameArgument.getText().length - 1);
 
-          const pae = callExpression?.getChildAtIndexIfKind(
-            0,
-            SyntaxKind.PropertyAccessExpression,
-          );
+        const typeArgument = callExpression.getArguments()[1];
+        const typeName = typeArgument.getText().split("e.")[1];
 
-          const identifiers =
-            pae?.getChildrenOfKind(SyntaxKind.Identifier) ?? [];
-          const [first, second] = identifiers;
-
-          if (
-            first?.getText() === "e" &&
-            second?.getText() === "fragment" &&
-            callExpression
-          ) {
-            const nameArgument = callExpression.getArguments()[0];
-            const fragmentName = nameArgument
-              .getText()
-              .slice(1, nameArgument.getText().length - 1);
-
-            const typeArgument = callExpression.getArguments()[1];
-            const typeName = typeArgument.getText().split("e.")[1];
-
-            fragments.push({
-              name: fragmentName,
-              text: callExpression.getText(),
-              type: typeName,
-            });
-          }
-        }
+        fragments.push({
+          name: fragmentName,
+          text: callExpression.getText(),
+          type: typeName,
+        });
       }
     });
 }
@@ -142,7 +126,7 @@ for (const fragment of fragments) {
             writer.write("return ");
 
             writer.inlineBlock(() => {
-              writer.write(fragment.name);
+              writer.write("__" + fragment.name);
               writer.write(": e.select(shape, ");
               writer.write(fragment.text);
               writer.write(".shape())");
