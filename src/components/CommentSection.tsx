@@ -25,14 +25,14 @@ export function CommentSection({ postRef, searchParams }: CommentSectionProps) {
     })),
   );
 
-  // return post?.comments?.map((comment) => {
-  //   return (
-  //     <li key={comment.id}>
-  //       <CommentCard
-  //         commentRef={comment}
-  //         highlightedCommentId={searchParams.highlightedComment}
-  //       />
-  //     </li>
-  //   );
-  // });
+  return post?.comments?.map((comment) => {
+    return (
+      <li key={comment.id}>
+        <CommentCard
+          commentRef={comment}
+          highlightedCommentId={searchParams.highlightedComment}
+        />
+      </li>
+    );
+  });
 }

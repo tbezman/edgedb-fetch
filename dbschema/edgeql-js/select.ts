@@ -869,11 +869,28 @@ function $shape(_a: unknown, b: (...args: any) => any) {
 }
 export { $shape as shape };
 
+export type FragmentReturnType<
+  Expr extends ObjectTypeExpression,
+  Shape extends objectTypeToSelectShape<Expr["__element__"]> &
+    SelectModifiers<Expr["__element__"]>,
+> = {
+  type_: string;
+  shape: () => (scope: unknown) => Readonly<Shape>;
+  pull: (obj: any) => { id: string } & setToTsType<{
+    __element__: ObjectType<
+      `${Expr["__element__"]["__name__"]}`, // _shape
+      Expr["__element__"]["__pointers__"],
+      Omit<normaliseShape<Readonly<Shape>>, SelectModifierNames>
+    >;
+    __cardinality__: typeof Cardinality.One;
+  }>;
+};
+
 export function fragment<
   FragmentName extends string,
   Expr extends ObjectTypeExpression,
   Shape extends objectTypeToSelectShape<Expr["__element__"]> &
-    SelectModifiers<Expr["__element__"]>, // <Expr["__element__"]>
+    SelectModifiers<Expr["__element__"]>,
 >(
   fragmentName: FragmentName,
   expr: Expr,
@@ -885,18 +902,7 @@ export function fragment<
           : Expr[k];
       }>,
   ) => Readonly<Shape>,
-): {
-  type_: string;
-  shape: () => (scope: unknown) => Readonly<Shape>;
-  pull: (obj: any) => setToTsType<{
-    __element__: ObjectType<
-      `${Expr["__element__"]["__name__"]}`, // _shape
-      Expr["__element__"]["__pointers__"],
-      Omit<normaliseShape<Readonly<Shape>>, SelectModifierNames>
-    >;
-    __cardinality__: typeof Cardinality.One;
-  }>;
-} {
+): FragmentReturnType<Expr, Shape> {
   return {
     type_: expr.__element__.__name__,
     shape() {
