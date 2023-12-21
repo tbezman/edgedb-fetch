@@ -1,4 +1,4 @@
-import { Type } from "edgedb/dist/reflection/queries";
+import { Pointer, Type } from "edgedb/dist/reflection/queries";
 import { EdgeDBCache } from "./context/EdgeDBProvider";
 import { Cardinality } from "edgedb/dist/reflection";
 import { spec } from "../dbschema/edgeql-js/imports";
@@ -15,6 +15,13 @@ function isKeyFragment(key: string) {
   return key.startsWith("__");
 }
 
+function isNode(value: any): value is { id: string } {
+  return (
+    (value && typeof value === "object") ||
+    ("id" in value && typeof value.id === "string")
+  );
+}
+
 function handleLinkedField({
   key,
   cache,
@@ -23,7 +30,7 @@ function handleLinkedField({
   cacheEntry,
 }: {
   key: string;
-  pointer: any;
+  pointer: Pointer;
   cache: EdgeDBCache;
   cacheEntry: Record<string, unknown>;
   linkValue: { id: string } | Array<{ id: string }>;
@@ -61,17 +68,22 @@ function handleLinkedField({
 
 type UpdateCacheArgs = {
   cache: EdgeDBCache;
-  data: any;
+  data: { id: string } & Record<string, unknown>;
   type: Type;
 };
 
 export function updateCache({ cache, data, type }: UpdateCacheArgs) {
-  const cacheEntry = cache[data.id as string] ?? {};
-  cache[data.id as string] = cacheEntry;
+  if (!("id" in data) || typeof data.id !== "string") {
+    console.error(data);
+    throw new Error("Tried to insert the above without an id");
+  }
 
   if (!type || type.kind !== "object") {
-    throw new Error("Only expecting objects for now");
+    throw new Error("Expected type with kind object, but got: " + type?.kind);
   }
+
+  const cacheEntry = cache[data.id as string] ?? {};
+  cache[data.id as string] = cacheEntry;
 
   for (const key in data) {
     const value = data[key];
@@ -87,6 +99,13 @@ export function updateCache({ cache, data, type }: UpdateCacheArgs) {
     }
 
     if (isKeyFragment(key)) {
+      if (!isNode(value)) {
+        console.error(value);
+        throw new Error(
+          "Expected fragment value to be an object with an id in it, but got above instead.",
+        );
+      }
+
       updateCache({ cache, data: value, type });
 
       return;
@@ -96,6 +115,13 @@ export function updateCache({ cache, data, type }: UpdateCacheArgs) {
       if (maybePointer.kind === "property") {
         cacheEntry[key] = value;
       } else if (maybePointer.kind === "link") {
+        if (!isNode(value)) {
+          console.error(value);
+          throw new Error(
+            "Expected linked field to be an object with an id in it, but got above instead.",
+          );
+        }
+
         handleLinkedField({
           key,
           cache,
@@ -115,15 +141,15 @@ export function updateCache({ cache, data, type }: UpdateCacheArgs) {
 type ReadFromCacheArgs = {
   cache: EdgeDBCache;
   type: Type;
-  shape: any;
+  shape: Record<string, unknown>;
   id: string;
 };
+
 export function readFromCache({ cache, shape, type, id }: ReadFromCacheArgs) {
   if (type?.kind !== "object") {
-    throw new Error("Only expecting objects for now");
+    throw new Error("Expected type with kind object, but got: " + type?.kind);
   }
 
-  shape = shape({});
   const cacheEntry = cache[id];
 
   if (!cacheEntry) {
@@ -137,8 +163,6 @@ export function readFromCache({ cache, shape, type, id }: ReadFromCacheArgs) {
 
     if (shapeValue === true) {
       result[key] = cacheEntry[key];
-    } else if (shapeValue === false) {
-      throw new Error("Did not expect false ");
     } else if (typeof shapeValue === "object") {
       if (key.startsWith("__")) {
         const fragmentName = key.slice(2);
@@ -152,7 +176,7 @@ export function readFromCache({ cache, shape, type, id }: ReadFromCacheArgs) {
           id,
           type,
           cache,
-          shape: fragmentDefinition.shape(),
+          shape: fragmentDefinition.shape()({}),
         });
       } else {
         const pointer = type?.pointers.find((pointer) => {
@@ -169,7 +193,7 @@ export function readFromCache({ cache, shape, type, id }: ReadFromCacheArgs) {
               cache,
               id: ref,
               type: targetType,
-              shape: shapeValue,
+              shape: shapeValue({}),
             });
           });
         } else if (
@@ -181,7 +205,7 @@ export function readFromCache({ cache, shape, type, id }: ReadFromCacheArgs) {
           result[key] = readFromCache({
             cache,
             type: targetType,
-            shape: () => shapeValue,
+            shape: shapeValue,
             id: cacheValue.__ref__,
           });
         }
@@ -201,7 +225,7 @@ export function readFromCache({ cache, shape, type, id }: ReadFromCacheArgs) {
             cache,
             id: ref,
             type: targetType,
-            shape: shapeValue,
+            shape: shapeValue({}),
           });
         });
       } else {

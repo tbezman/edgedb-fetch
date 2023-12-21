@@ -30,7 +30,7 @@ export function useFragment<F extends FragmentReturnType<any, any>>(
   const resultFromCache = readFromCache({
     cache: context?.cache ?? {},
     type: findType(fragment.type_)!,
-    shape: fragment.shape(),
+    shape: fragment.shape()({}),
     id: data.id,
   }) as ReturnType<F["pull"]>;
 

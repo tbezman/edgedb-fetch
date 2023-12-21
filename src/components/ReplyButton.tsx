@@ -2,12 +2,13 @@
 import { faker } from "@faker-js/faker";
 
 import Link from "next/link";
-import { useContext, useEffect, useRef } from "react";
+import { startTransition, useContext, useEffect, useRef } from "react";
 import { useFormStatus } from "react-dom";
 import { useRouter } from "next/navigation";
 import { useQueryState } from "next-usequerystate";
 import { EdgeDBContext } from "@/context/EdgeDBProvider";
 import rfdc from "rfdc";
+import { submitReply } from "@/actions/submitReply";
 
 type ReplyButtonProps = {
   commentId: string;
@@ -23,31 +24,25 @@ export function ReplyButton({ commentId }: ReplyButtonProps) {
   async function handleSubmit(data: FormData) {
     setReplyTo(null);
 
-    context?.setCache((prev) => {
-      const cache = clone(prev);
-
-      cache["some-user-id"] = {
-        name: "Test User",
-      };
-      cache["some-id"] = {
-        id: "some-id",
-        text: "Test",
-        author: {
-          __ref__: "some-user-id",
-        },
-      };
-      cache[commentId] = {
-        ...cache[commentId],
-        replies: [
-          ...cache[commentId].replies,
-          {
-            __ref__: "some-id",
-          },
-        ],
-      };
-
-      return cache;
-    });
+    context?.updateFragment(
+      "CommentCardCommentFragment",
+      commentId,
+      (previous) => {
+        return {
+          replies: [
+            ...previous.replies,
+            {
+              id: faker.string.uuid(),
+              text: faker.lorem.sentence(),
+              author: {
+                id: faker.string.uuid(),
+                name: faker.person.fullName(),
+              },
+            },
+          ],
+        };
+      },
+    );
 
     // const reply = await submitReply(data);
 
