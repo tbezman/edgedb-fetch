@@ -2,26 +2,26 @@
 import { faker } from "@faker-js/faker";
 
 import Link from "next/link";
-import { startTransition, useContext, useEffect, useRef } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { useRouter } from "next/navigation";
 import { useQueryState } from "next-usequerystate";
 import { EdgeDBContext } from "@/context/EdgeDBProvider";
-import rfdc from "rfdc";
 import { submitReply } from "@/actions/submitReply";
 
 type ReplyButtonProps = {
   commentId: string;
 };
 
-const clone = rfdc();
-
 export function ReplyButton({ commentId }: ReplyButtonProps) {
+  const [nextCommentId, setNextCommentId] = useState(faker.string.uuid());
   const [replyTo, setReplyTo] = useQueryState("reply_to", { shallow: true });
+  const [, setHighlightedCommentId] = useQueryState("highlightedComment");
 
   const router = useRouter();
   const context = useContext(EdgeDBContext);
-  async function handleSubmit(data: FormData) {
+
+  function insertOptimistic() {
     setReplyTo(null);
 
     context?.updateFragment(
@@ -32,7 +32,7 @@ export function ReplyButton({ commentId }: ReplyButtonProps) {
           replies: [
             ...previous.replies,
             {
-              id: faker.string.uuid(),
+              id: nextCommentId,
               text: faker.lorem.sentence(),
               author: {
                 id: faker.string.uuid(),
@@ -44,10 +44,15 @@ export function ReplyButton({ commentId }: ReplyButtonProps) {
       },
     );
 
-    // const reply = await submitReply(data);
+    setHighlightedCommentId(nextCommentId, { shallow: true });
+  }
 
-    // await router.replace(`?highlightedComment=${reply.id}`, { scroll: false });
-    // await router.refresh();
+  async function handleSubmit(data: FormData) {
+    const reply = await submitReply(data);
+
+    setNextCommentId(faker.string.uuid());
+
+    setHighlightedCommentId(reply.id, { shallow: false });
   }
 
   const formRef = useRef<HTMLFormElement | null>(null);
@@ -93,6 +98,7 @@ export function ReplyButton({ commentId }: ReplyButtonProps) {
         <form
           ref={formRef}
           action={handleSubmit}
+          onSubmit={insertOptimistic}
           onClick={(e) => e.stopPropagation()}
           className="absolute right-0 z-10 bg-white p-4 rounded flex flex-col shadow"
         >
@@ -104,6 +110,7 @@ export function ReplyButton({ commentId }: ReplyButtonProps) {
           />
 
           <input name="commentId" type="hidden" value={commentId} />
+          <input name="newCommentId" type="hidden" value={nextCommentId} />
 
           <SubmitButton />
         </form>

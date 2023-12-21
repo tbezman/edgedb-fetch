@@ -161,6 +161,12 @@ export function readFromCache({ cache, shape, type, id }: ReadFromCacheArgs) {
     const shapeValue = shape[key];
     const cacheValue = cacheEntry[key];
 
+    // These are special keys that are used for filtering and ordering
+    // that should not be put into the cache
+    if (key === "filter_single" || key === "filter" || key === "order_by") {
+      continue;
+    }
+
     if (shapeValue === true) {
       result[key] = cacheEntry[key];
     } else if (typeof shapeValue === "object") {

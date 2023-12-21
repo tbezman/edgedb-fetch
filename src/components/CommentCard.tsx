@@ -9,13 +9,9 @@ import {
 
 type CommentCardProps = {
   commentRef: CommentCardCommentFragmentRef;
-  highlightedCommentId?: string;
 };
 
-export function CommentCard({
-  commentRef,
-  highlightedCommentId,
-}: CommentCardProps) {
+export function CommentCard({ commentRef }: CommentCardProps) {
   const comment = e
     .fragment("CommentCardCommentFragment", e.Comment, (comment) => ({
       id: true,
@@ -29,6 +25,11 @@ export function CommentCard({
 
       replies: (reply) => ({
         id: true,
+
+        order_by: {
+          expression: reply.created_at,
+          direction: "ASC",
+        },
 
         ...ReplyCommentCardCommentFragment(reply),
       }),
@@ -59,10 +60,7 @@ export function CommentCard({
             {comment.replies.map((reply) => {
               return (
                 <li key={reply.id}>
-                  <ReplyCommentCard
-                    commentRef={reply}
-                    highlightedCommentId={highlightedCommentId}
-                  />
+                  <ReplyCommentCard commentRef={reply} />
                 </li>
               );
             })}

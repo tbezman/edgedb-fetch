@@ -3,16 +3,14 @@
 import { useEffect, useRef } from "react";
 import e from "../../dbschema/edgeql-js";
 import { ReplyCommentCardCommentFragmentRef } from "../../dist/manifest";
+import { useQueryState } from "next-usequerystate";
 
 type ReplyCommentCardProps = {
   highlightedCommentId?: string;
   commentRef: ReplyCommentCardCommentFragmentRef;
 };
 
-export function ReplyCommentCard({
-  commentRef,
-  highlightedCommentId,
-}: ReplyCommentCardProps) {
+export function ReplyCommentCard({ commentRef }: ReplyCommentCardProps) {
   const comment = e
     .fragment("ReplyCommentCardCommentFragment", e.Comment, (comment) => ({
       id: true,
@@ -26,6 +24,8 @@ export function ReplyCommentCard({
 
   const elementRef = useRef<HTMLDivElement | null>(null);
 
+  const [highlightedCommentId] = useQueryState("highlightedComment");
+
   useEffect(() => {
     if (highlightedCommentId === comment.id) {
       elementRef.current?.scrollIntoView({
@@ -35,11 +35,13 @@ export function ReplyCommentCard({
     }
   }, [comment.id, highlightedCommentId]);
 
+  const isHighlighted = highlightedCommentId === comment.id;
+
   return (
     <div
       ref={elementRef}
       className={`text-[15px] flex items-center gap-x-2 rounded ${
-        highlightedCommentId === comment.id ? "flash p-2" : ""
+        isHighlighted ? "flash p-2" : ""
       }`}
     >
       <div className="flex justify-end">

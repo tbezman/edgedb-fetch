@@ -10,10 +10,9 @@ import { CommentCard } from "./CommentCard";
 
 type CommentSectionProps = {
   postRef: CommentSectionPostFragmentRef;
-  searchParams: { highlightedComment?: string };
 };
 
-export function CommentSection({ postRef, searchParams }: CommentSectionProps) {
+export function CommentSection({ postRef }: CommentSectionProps) {
   const post = useFragment(
     postRef,
     e.fragment("CommentSectionPostFragment", e.Post, () => ({
@@ -29,10 +28,7 @@ export function CommentSection({ postRef, searchParams }: CommentSectionProps) {
   return post?.comments?.map((comment) => {
     return (
       <li key={comment.id}>
-        <CommentCard
-          commentRef={comment}
-          highlightedCommentId={searchParams.highlightedComment}
-        />
+        <CommentCard commentRef={comment} />
       </li>
     );
   });

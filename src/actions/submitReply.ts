@@ -4,8 +4,10 @@ import { client } from "@/client";
 import e from "../../dbschema/edgeql-js";
 
 export async function submitReply(formData: FormData) {
+  await new Promise((resolve) => setTimeout(resolve, 1000));
   const text = formData.get("text")?.toString();
   const commentId = formData.get("commentId")?.toString();
+  const newCommentId = formData.get("newCommentId")?.toString();
 
   if (!text) {
     throw new Error("Missing text");
@@ -25,6 +27,7 @@ export async function submitReply(formData: FormData) {
 
   return await e
     .insert(e.Comment, {
+      id: newCommentId,
       text,
       author,
       parentComment,

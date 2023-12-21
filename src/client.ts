@@ -1,8 +1,9 @@
-import { Client } from "edgedb";
 import { createClient } from "../dbschema/edgeql-js";
 
 const edgedbClientSingleton = () => {
-  return createClient({ dsn: process.env.EDGEDB_DSN });
+  return createClient({ dsn: process.env.EDGEDB_DSN }).withConfig({
+    allow_user_specified_id: true,
+  });
 };
 
 declare global {

@@ -13,20 +13,19 @@ export function useFragment<F extends FragmentReturnType<any, any>>(
   fragment: F,
 ): ReturnType<F["pull"]> {
   const context = useContext(EdgeDBContext);
+  const setCache = context?.setCache;
+  const data = fragment.pull(ref);
 
   useEffect(() => {
-    context?.setCache((previous) => {
+    setCache?.((previous) => {
       const cache = clone(previous);
-
-      const data = fragment.pull(ref);
 
       updateCache({ cache, data, type: findType(fragment.type_)! });
 
       return cache;
     });
-  }, []);
+  }, [ref, setCache, data, fragment.type_]);
 
-  const data = fragment.pull(ref);
   const resultFromCache = readFromCache({
     cache: context?.cache ?? {},
     type: findType(fragment.type_)!,
@@ -34,5 +33,5 @@ export function useFragment<F extends FragmentReturnType<any, any>>(
     id: data.id,
   }) as ReturnType<F["pull"]>;
 
-  return resultFromCache ?? fragment.pull(ref);
+  return resultFromCache ?? data;
 }
