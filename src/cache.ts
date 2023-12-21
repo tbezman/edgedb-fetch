@@ -11,6 +11,54 @@ export function findType(type_: string) {
   });
 }
 
+function isKeyFragment(key: string) {
+  return key.startsWith("__");
+}
+
+function handleLinkedField({
+  key,
+  cache,
+  pointer,
+  linkValue,
+  cacheEntry,
+}: {
+  key: string;
+  pointer: any;
+  cache: EdgeDBCache;
+  cacheEntry: Record<string, unknown>;
+  linkValue: { id: string } | Array<{ id: string }>;
+}) {
+  if (pointer.card === Cardinality.Many) {
+    if (!Array.isArray(linkValue)) {
+      console.error(linkValue);
+      throw new Error(
+        `Pointer cardindality expected an array, but got the above`,
+      );
+    }
+
+    const targetType = spec.get(pointer.target_id);
+
+    if (targetType?.name) {
+      cacheEntry[key] = linkValue.map((item) => {
+        updateCache({ cache, data: item, type: targetType });
+
+        return { __ref__: item.id };
+      });
+    }
+  } else if (pointer.card === Cardinality.One) {
+    if (!("id" in linkValue) || typeof linkValue.id !== "string") {
+      console.error(linkValue);
+      throw new Error(
+        "Pointer cardinality was 'ONE', so we expected an object with an id field, but got the above",
+      );
+    }
+
+    const targetType = spec.get(pointer.target_id);
+    updateCache({ cache, data: linkValue, type: targetType });
+    cacheEntry[key] = { __ref__: linkValue.id };
+  }
+}
+
 type UpdateCacheArgs = {
   cache: EdgeDBCache;
   data: any;
@@ -21,40 +69,42 @@ export function updateCache({ cache, data, type }: UpdateCacheArgs) {
   const cacheEntry = cache[data.id as string] ?? {};
   cache[data.id as string] = cacheEntry;
 
-  if (type && type.kind === "object") {
-    for (const key in data) {
-      const value = data[key];
+  if (!type || type.kind !== "object") {
+    throw new Error("Only expecting objects for now");
+  }
 
-      const pointer = type.pointers.find((pointer) => {
-        return pointer.name === key;
-      });
+  for (const key in data) {
+    const value = data[key];
 
-      if (pointer?.kind === "link") {
-        if (pointer.card === Cardinality.Many) {
-          const arrayValue = value as any[];
+    const maybePointer = type.pointers.find((pointer) => {
+      return pointer.name === key;
+    });
 
-          const targetType = spec.get(pointer.target_id);
+    // This handles `id` since there is not pointer for that
+    // Every other field should have a pointer.
+    if (!maybePointer) {
+      cacheEntry[key] = value;
+    }
 
-          if (targetType?.name) {
-            cacheEntry[key] = arrayValue.map((item) => {
-              updateCache({ cache, data: item, type: targetType });
+    if (isKeyFragment(key)) {
+      updateCache({ cache, data: value, type });
 
-              return { __ref__: item.id };
-            });
-          }
-        } else if (pointer.card === Cardinality.One) {
-          const targetType = spec.get(pointer.target_id);
-          updateCache({ cache, data: value, type: targetType });
-          cacheEntry[key] = { __ref__: value.id };
-        }
-      } else if (key.startsWith("__")) {
-        updateCache({ cache, data: value, type });
-      } else if (pointer?.kind === "property") {
+      return;
+    }
+
+    if (maybePointer) {
+      if (maybePointer.kind === "property") {
         cacheEntry[key] = value;
-      } else if (!pointer) {
-        cacheEntry[key] = value;
-
-        cache[data.id as string] = cacheEntry;
+      } else if (maybePointer.kind === "link") {
+        handleLinkedField({
+          key,
+          cache,
+          cacheEntry,
+          linkValue: value,
+          pointer: maybePointer,
+        });
+      } else {
+        throw new Error(`Unexpected pointer kind: ${maybePointer.kind}`);
       }
     }
   }
@@ -70,7 +120,6 @@ type ReadFromCacheArgs = {
 };
 export function readFromCache({ cache, shape, type, id }: ReadFromCacheArgs) {
   if (type?.kind !== "object") {
-    console.error(type);
     throw new Error("Only expecting objects for now");
   }
 
@@ -98,8 +147,6 @@ export function readFromCache({ cache, shape, type, id }: ReadFromCacheArgs) {
         if (!fragmentDefinition) {
           throw new Error(`Could not find fragment ${fragmentName}`);
         }
-
-        const shape = fragmentDefinition.shape()({});
 
         result[key] = readFromCache({
           id,
