@@ -19,8 +19,8 @@ const clone = rfdc();
 export function ReplyButton({ commentId }: ReplyButtonProps) {
   const [replyTo, setReplyTo] = useQueryState("reply_to", { shallow: true });
 
-  const context = useContext(EdgeDBContext);
   const router = useRouter();
+  const context = useContext(EdgeDBContext);
   async function handleSubmit(data: FormData) {
     setReplyTo(null);
 
