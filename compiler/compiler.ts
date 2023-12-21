@@ -140,5 +140,27 @@ for (const fragment of fragments) {
   });
 }
 
+manifest.addVariableStatement({
+  declarationKind: VariableDeclarationKind.Const,
+  declarations: [
+    {
+      name: "fragmentMap",
+      initializer: (writer) => {
+        writer.write("new Map<string, ReturnType<typeof e.fragment>>()");
+      },
+    },
+  ],
+});
+
+manifest.addStatements(
+  fragments.map((fragment) => {
+    return (writer) => {
+      writer.writeLine(`fragmentMap.set('${fragment.name}', ${fragment.text})`);
+    };
+  }),
+);
+
+manifest.addExportDeclaration({ namedExports: ["fragmentMap"] });
+
 manifest.formatText();
 manifest.saveSync();
