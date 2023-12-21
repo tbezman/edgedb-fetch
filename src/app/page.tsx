@@ -5,18 +5,13 @@ import e from "../../dbschema/edgeql-js";
 import { PostCardPostFragment } from "../../dist/manifest";
 
 export default async function Home() {
-  const before = Date.now();
-  const posts = await e
-    .select(e.Post, (post) => ({
-      id: true,
+  const query = e.select(e.Post, (post) => ({
+    id: true,
 
-      ...PostCardPostFragment(post),
-    }))
-    .run(client);
+    ...PostCardPostFragment(post),
+  }));
 
-  const after = Date.now();
-
-  console.log(`Time took - ${after - before}ms`);
+  const posts = await query.run(client);
 
   return (
     <div className="py-4 px-4">
@@ -44,6 +39,3 @@ function Title({ children }: PropsWithChildren) {
     </div>
   );
 }
-
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
