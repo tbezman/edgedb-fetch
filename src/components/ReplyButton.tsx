@@ -2,28 +2,57 @@
 import { faker } from "@faker-js/faker";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { useEffect, useRef } from "react";
-import { submitReply } from "../actions/submitReply";
+import { useContext, useEffect, useRef } from "react";
 import { useFormStatus } from "react-dom";
 import { useRouter } from "next/navigation";
 import { useQueryState } from "next-usequerystate";
+import { EdgeDBContext } from "@/context/EdgeDBProvider";
+import rfdc from "rfdc";
 
 type ReplyButtonProps = {
   commentId: string;
 };
 
+const clone = rfdc();
+
 export function ReplyButton({ commentId }: ReplyButtonProps) {
   const [replyTo, setReplyTo] = useQueryState("reply_to", { shallow: true });
 
+  const context = useContext(EdgeDBContext);
   const router = useRouter();
   async function handleSubmit(data: FormData) {
     setReplyTo(null);
 
-    const reply = await submitReply(data);
+    context?.setCache((prev) => {
+      const cache = clone(prev);
 
-    await router.replace(`?highlightedComment=${reply.id}`, { scroll: false });
-    await router.refresh();
+      cache["some-user-id"] = {
+        name: "Test User",
+      };
+      cache["some-id"] = {
+        id: "some-id",
+        text: "Test",
+        author: {
+          __ref__: "some-user-id",
+        },
+      };
+      cache[commentId] = {
+        ...cache[commentId],
+        replies: [
+          ...cache[commentId].replies,
+          {
+            __ref__: "some-id",
+          },
+        ],
+      };
+
+      return cache;
+    });
+
+    // const reply = await submitReply(data);
+
+    // await router.replace(`?highlightedComment=${reply.id}`, { scroll: false });
+    // await router.refresh();
   }
 
   const formRef = useRef<HTMLFormElement | null>(null);
