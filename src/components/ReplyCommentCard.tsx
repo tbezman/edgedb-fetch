@@ -17,6 +17,7 @@ export function ReplyCommentCard({
     .fragment("ReplyCommentCardCommentFragment", e.Comment, (comment) => ({
       id: true,
       author: {
+        id: true,
         name: true,
       },
       text: true,

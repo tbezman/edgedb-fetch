@@ -17,6 +17,7 @@ export function CommentSection({ postRef, searchParams }: CommentSectionProps) {
   const post = useFragment(
     postRef,
     e.fragment("CommentSectionPostFragment", e.Post, () => ({
+      id: true,
       comments: (comment) => ({
         id: true,
 

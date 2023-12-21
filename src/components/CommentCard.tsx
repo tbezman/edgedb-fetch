@@ -23,6 +23,7 @@ export function CommentCard({
       created_at: true,
 
       author: {
+        id: true,
         name: true,
       },
 
