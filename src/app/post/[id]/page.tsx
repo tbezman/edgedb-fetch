@@ -1,15 +1,12 @@
 import { client } from "@/client";
-import { CommentCard } from "@/components/CommentCard";
 import { Spinner } from "@/components/Spinner";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import e from "../../../../dbschema/edgeql-js";
-import {
-  CommentCardCommentFragment,
-  CommentSectionPostFragment,
-  CommentSectionPostFragmentRef,
-} from "../../../../dist/manifest";
+import { CommentSectionPostFragment } from "../../../../dist/manifest";
+import { CommentSection } from "@/components/CommentSection";
+import { generateReaderSchema } from "@/generateReaderSchema";
 
 type PageProps = {
   searchParams: { highlightedComment?: string };
@@ -17,16 +14,17 @@ type PageProps = {
 };
 
 export default async function PostPage({ params, searchParams }: PageProps) {
-  const post = await e
-    .select(e.Post, (post) => ({
-      title: true,
-      content: true,
+  const query = e.select(e.Post, (post) => ({
+    title: true,
+    content: true,
 
-      ...CommentSectionPostFragment(post),
+    ...CommentSectionPostFragment(post),
 
-      filter_single: e.op(post.id, "=", e.uuid(params.id)),
-    }))
-    .run(client);
+    filter: e.op(post.id, "=", e.uuid(params.id)),
+  }));
+
+  await generateReaderSchema(query.toEdgeQL());
+  const post = (await query.run(client))[0];
 
   if (!post) {
     return notFound();
@@ -60,36 +58,6 @@ export default async function PostPage({ params, searchParams }: PageProps) {
       </article>
     </>
   );
-}
-
-type CommentSectionProps = {
-  postRef: CommentSectionPostFragmentRef;
-  searchParams: { highlightedComment?: string };
-};
-
-function CommentSection({ postRef, searchParams }: CommentSectionProps) {
-  const post = e
-    .fragment("CommentSectionPostFragment", e.Post, (post) => ({
-      comments: (comment) => ({
-        id: true,
-
-        ...CommentCardCommentFragment(comment),
-      }),
-    }))
-    .pull(postRef);
-
-  console.log(post, postRef);
-
-  return post?.comments?.map((comment) => {
-    return (
-      <li key={comment.id}>
-        <CommentCard
-          commentRef={comment}
-          highlightedCommentId={searchParams.highlightedComment}
-        />
-      </li>
-    );
-  });
 }
 
 function Header() {
