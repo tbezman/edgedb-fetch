@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import { EdgeDBProvider } from "@/context/EdgeDBProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -17,7 +18,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.className} bg-blue-50 text-blue-950`}>
-        {children}
+        <EdgeDBProvider>{children}</EdgeDBProvider>
       </body>
     </html>
   );
