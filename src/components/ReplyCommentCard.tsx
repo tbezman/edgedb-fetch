@@ -4,6 +4,8 @@ import { useEffect, useRef } from "react";
 import e from "../../dbschema/edgeql-js";
 import { ReplyCommentCardCommentFragmentRef } from "../../dist/manifest";
 import { useQueryState } from "next-usequerystate";
+import clsx from "clsx";
+import { isOptimistic } from "@/cache";
 
 type ReplyCommentCardProps = {
   highlightedCommentId?: string;
@@ -40,9 +42,10 @@ export function ReplyCommentCard({ commentRef }: ReplyCommentCardProps) {
   return (
     <div
       ref={elementRef}
-      className={`text-[15px] flex items-center gap-x-2 rounded ${
-        isHighlighted ? "flash p-2" : ""
-      }`}
+      className={clsx("p-2 text-[15px] flex items-center gap-x-2 rounded", {
+        flash: isHighlighted && !isOptimistic(comment),
+        "opacity-50": isOptimistic(comment),
+      })}
     >
       <div className="flex justify-end">
         <svg

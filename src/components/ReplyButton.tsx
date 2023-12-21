@@ -32,6 +32,7 @@ export function ReplyButton({ commentId }: ReplyButtonProps) {
           replies: [
             ...previous.replies,
             {
+              __optimistic__: true,
               id: nextCommentId,
               text: faker.lorem.sentence(),
               author: {

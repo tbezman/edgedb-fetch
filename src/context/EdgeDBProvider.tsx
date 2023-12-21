@@ -48,7 +48,7 @@ export function EdgeDBProvider({ children }: PropsWithChildren) {
         const previousData = readFromCache({
           id,
           cache,
-          type: findType(fragmentDefinion.type_),
+          type: findType(fragmentDefinion.type_)!,
           shape: fragmentDefinion.shape()({}),
         });
 
@@ -57,7 +57,7 @@ export function EdgeDBProvider({ children }: PropsWithChildren) {
         updateCache({
           cache,
           data: newData,
-          type: findType(fragmentDefinion.type_),
+          type: findType(fragmentDefinion.type_)!,
         });
 
         return cache;

@@ -22,6 +22,12 @@ function isNode(value: any): value is { id: string } {
   );
 }
 
+const optimisticIds = new Set<string>();
+
+export function isOptimistic(record: { id: string }) {
+  return optimisticIds.has(record.id);
+}
+
 function handleLinkedField({
   key,
   cache,
@@ -84,6 +90,14 @@ export function updateCache({ cache, data, type }: UpdateCacheArgs) {
 
   const cacheEntry = cache[data.id as string] ?? {};
   cache[data.id as string] = cacheEntry;
+
+  if (data.__optimistic__) {
+    optimisticIds.add(data.id);
+
+    delete data.__optimistic__;
+  } else {
+    optimisticIds.delete(data.id);
+  }
 
   for (const key in data) {
     const value = data[key];

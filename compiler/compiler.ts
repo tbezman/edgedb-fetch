@@ -18,6 +18,21 @@ manifest.addImportDeclaration({
   moduleSpecifier: "../dbschema/edgeql-js",
 });
 
+manifest.addTypeAlias({
+  name: "ExprShape",
+  typeParameters: [{ name: "Expr", constraint: "ObjectTypeExpression" }],
+  type: `
+$scopify<
+  Expr["__element__"]
+> &
+  $linkPropify<{
+    [k in keyof Expr]: k extends "__cardinality__"
+      ? typeof Cardinality.One
+      : Expr[k];
+  }>
+  `,
+});
+
 const fragments: Array<{ name: string; type: string; text: string }> = [];
 for (const file of files) {
   file
@@ -99,14 +114,7 @@ for (const fragment of fragments) {
         initializer: (writer) => {
           writer.write("(shape: ");
 
-          writer.write(`
-           $scopify<typeof e.${fragment.type}["__element__"]> &
-            $linkPropify<{
-              [k in keyof typeof e.${fragment.type}]: k extends "__cardinality__"
-                ? typeof Cardinality.One
-                : typeof e.${fragment.type}[k];
-            }>
-          `);
+          writer.write(`ExprShape<typeof e.${fragment.type}>`);
 
           writer.write(") =>");
 
