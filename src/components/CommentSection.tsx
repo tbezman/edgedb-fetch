@@ -13,25 +13,18 @@ type CommentSectionProps = {
   searchParams: { highlightedComment?: string };
 };
 
-const Fragment = e.fragment("CommentSectionPostFragment", e.Post, () => ({
-  comments: (comment) => ({
-    id: true,
-
-    text: true,
-  }),
-}));
-
-type X = {
-  comments: Array<{
-    id: string;
-    __CommentCardCommentFragment: { text: string };
-  }>;
-};
-
 export function CommentSection({ postRef, searchParams }: CommentSectionProps) {
-  const post = useFragment(postRef, Fragment);
+  const post = useFragment(
+    postRef,
+    e.fragment("CommentSectionPostFragment", e.Post, () => ({
+      comments: (comment) => ({
+        id: true,
 
-  return null;
+        ...CommentCardCommentFragment(comment),
+      }),
+    })),
+  );
+
   // return post?.comments?.map((comment) => {
   //   return (
   //     <li key={comment.id}>
