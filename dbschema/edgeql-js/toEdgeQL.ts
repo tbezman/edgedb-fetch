@@ -1262,8 +1262,6 @@ function shapeToEdgeQL(
   keysOnly: boolean = false,
   injectImplicitId: boolean = true,
 ) {
-  shape.id = true;
-
   const pointers = type?.__pointers__ || null;
   const isFreeObject = type?.__name__ === "std::FreeObject";
   if (shape === null) {
