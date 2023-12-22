@@ -72,7 +72,7 @@ export function EdgeDBProvider({ children }: PropsWithChildren) {
       setCache,
       updateFragment,
     }),
-    [cache],
+    [cache, updateFragment],
   );
 
   return (
