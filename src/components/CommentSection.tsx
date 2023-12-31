@@ -1,12 +1,13 @@
 "use client";
 
-import { useFragment } from "@/useFragment";
+import { useFragment } from "@edgedb/react/dist/react/src/useFragment";
 import e from "../../dbschema/edgeql-js";
+
+import { CommentCard } from "./CommentCard";
 import {
   CommentCardCommentFragment,
   CommentSectionPostFragmentRef,
-} from "../../dist/manifest";
-import { CommentCard } from "./CommentCard";
+} from "../../dbschema/edgeql-js/manifest";
 
 type CommentSectionProps = {
   postRef: CommentSectionPostFragmentRef;

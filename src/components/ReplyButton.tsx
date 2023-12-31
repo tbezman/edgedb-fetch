@@ -6,8 +6,14 @@ import { useContext, useEffect, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { useRouter } from "next/navigation";
 import { useQueryState } from "next-usequerystate";
-import { EdgeDBContext } from "@/context/EdgeDBProvider";
+import {
+  EdgeDBContext,
+  EdgeDBContextType,
+} from "@edgedb/react/dist/react/src/EdgeDBProvider";
 import { submitReply } from "@/actions/submitReply";
+import { CommentCardCommentFragment } from "../../dbschema/edgeql-js/manifest";
+
+import { v4 } from "uuid";
 
 type ReplyButtonProps = {
   commentId: string;
@@ -19,26 +25,30 @@ export function ReplyButton({ commentId }: ReplyButtonProps) {
   const [, setHighlightedCommentId] = useQueryState("highlightedComment");
 
   const router = useRouter();
-  const context = useContext(EdgeDBContext);
+  const context = useContext<EdgeDBContextType | null>(EdgeDBContext);
 
   function insertOptimistic() {
     setReplyTo(null);
 
+    const fakeUuid = v4();
+    const fakeAuthorUuid = v4();
+
     context?.updateFragment(
-      "CommentCardCommentFragment",
+      CommentCardCommentFragment,
       commentId,
       (previous) => {
         return {
+          ...previous,
           replies: [
             ...previous.replies,
             {
-              __optimistic__: true,
-              id: nextCommentId,
-              text: faker.lorem.sentence(),
+              id: fakeUuid,
               author: {
-                id: faker.string.uuid(),
-                name: faker.person.fullName(),
+                id: fakeAuthorUuid,
+                name: "Fake Name",
               },
+
+              text: "Some text here",
             },
           ],
         };

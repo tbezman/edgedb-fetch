@@ -2,16 +2,16 @@ import { client } from "@/client";
 import { FallbackCard, PostCard } from "@/components/PostCard";
 import { PropsWithChildren, Suspense } from "react";
 import e from "../../dbschema/edgeql-js";
-import { PostCardPostFragment } from "../../dist/manifest";
+import { PostCardPostFragment } from "../../dbschema/edgeql-js/manifest";
 
 export default async function Home() {
-  const query = e.select(e.Post, (post) => ({
-    id: true,
+  const posts = await e
+    .select(e.Post, (post) => ({
+      id: true,
 
-    ...PostCardPostFragment(post),
-  }));
-
-  const posts = await query.run(client);
+      ...PostCardPostFragment(post),
+    }))
+    .run(client);
 
   return (
     <div className="py-4 px-4">

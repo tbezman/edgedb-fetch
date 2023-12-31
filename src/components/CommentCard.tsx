@@ -5,7 +5,7 @@ import { ReplyCommentCard } from "./ReplyCommentCard";
 import {
   CommentCardCommentFragmentRef,
   ReplyCommentCardCommentFragment,
-} from "../../dist/manifest";
+} from "../../dbschema/edgeql-js/manifest";
 
 type CommentCardProps = {
   commentRef: CommentCardCommentFragmentRef;

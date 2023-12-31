@@ -40,3 +40,4 @@ antlr/
 .antlr/
 
 .env
+dbschema/edgeql-js

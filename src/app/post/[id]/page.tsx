@@ -4,8 +4,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import e from "../../../../dbschema/edgeql-js";
-import { CommentSectionPostFragment } from "../../../../dist/manifest";
 import { CommentSection } from "@/components/CommentSection";
+import { CommentSectionPostFragment } from "../../../../dbschema/edgeql-js/manifest";
 
 type PageProps = {
   searchParams: { highlightedComment?: string };
@@ -49,7 +49,7 @@ export default async function PostPage({ params, searchParams }: PageProps) {
             <h2 className="text-xl font-bold">Comments</h2>
 
             <ul className="space-y-8">
-              <CommentSection searchParams={searchParams} postRef={post} />
+              <CommentSection postRef={post} />
             </ul>
           </Suspense>
         </div>

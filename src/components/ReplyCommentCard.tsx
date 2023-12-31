@@ -2,10 +2,10 @@
 
 import { useEffect, useRef } from "react";
 import e from "../../dbschema/edgeql-js";
-import { ReplyCommentCardCommentFragmentRef } from "../../dist/manifest";
 import { useQueryState } from "next-usequerystate";
 import clsx from "clsx";
-import { isOptimistic } from "@/cache";
+import { isOptimistic } from "@edgedb/react/dist/react/src/cache";
+import { ReplyCommentCardCommentFragmentRef } from "../../dbschema/edgeql-js/manifest";
 
 type ReplyCommentCardProps = {
   highlightedCommentId?: string;

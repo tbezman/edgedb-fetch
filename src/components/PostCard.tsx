@@ -4,8 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import e from "../../dbschema/edgeql-js";
-import { PostCardPostFragmentRef } from "../../dist/manifest";
 import { Spinner } from "./Spinner";
+import { PostCardPostFragmentRef } from "../../dbschema/edgeql-js/manifest";
 
 type PostCardProps = {
   postRef: PostCardPostFragmentRef;
